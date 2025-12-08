@@ -3,22 +3,28 @@ import { headers } from "next/headers";
 import { Button } from "./ui/button";
 import SignOutButton from "./auth/SignOutButton";
 import Link from "next/link";
+import CommandSearch from "./CommandSearch";
 
 const NavBar = async () => {
   const authData = await auth.api.getSession({
     headers: await headers(),
   });
   return (
-    <div>
-        {authData 
-        ?
-        <SignOutButton></SignOutButton>
-        : 
-        <Link href="/sign-in">
+    <header className="flex mx-5 pt-4 justify-between items-center flex-row">
+      <h1>NavBar Component</h1>
+      <CommandSearch />
+      {authData?.user ? (
+        <div>
+          <span>Welcome, {authData.user.email}</span>
+        </div>
+      ) : (
+        <div>
+          <Link href="/sign-in">
             <Button>Sign In</Button>
-        </Link> 
-        }
-    </div>
+          </Link>
+        </div>
+      )}
+    </header>
   );
 };
 

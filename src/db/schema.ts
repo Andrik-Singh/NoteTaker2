@@ -91,23 +91,39 @@ export const accountRelations = relations(account, ({ one }) => ({
     references: [user.id],
   }),
 }));
-export const folder=pgTable("noteFolder",{
-    folderId:text("folderId").notNull().primaryKey(),
-    folderName:text("folderName").notNull(),
-    
-})
 export const noteTable=pgTable("NoteTable",{
     id:text("id").primaryKey().notNull(),
     userId:text("userId").references(()=>user.id,{
         onDelete:"cascade"
     }).notNull(),
-    content:jsonb("oteContent").notNull(),
+    content:jsonb("noteContent").notNull(),
     title:text("noteTitle").notNull(),
     createdAt:timestamp("createdAt").notNull().defaultNow(),
     updatedAt:timestamp("updatedAt").$onUpdate(()=>new Date()).defaultNow(),
-    parentFolderId:text("parentFolder").references(()=>folder.folderId,{
-        onDelete:"cascade"
+})
+export const noteTags =pgTable("noteTags",{
+  noteId:text("noteId").notNull(),
+  tagName:text("tagName").notNull(),
+})
+export const noteMembers=pgTable("noteMembers",{
+    userId:text("memberUserId").references(()=>user.id,{
+      onDelete:"cascade"
+    }).notNull(),
+    noteId:text("noteId").references(()=>noteTable.id,{
+      onDelete:"cascade"
+    }).notNull(),
+    role:text("role").notNull(),
+    joinedAt:timestamp("joinedAt").defaultNow()
+})
+export const noteVersions=pgTable("noteVersions",{
+    noteId:text("noteId").references(()=>noteTable.id,{
+      onDelete:"cascade"
     }),
-
-
+    versionId:text("versionId").primaryKey().notNull(),
+    changedBy:text("userId").references(()=>user.id,{
+      onDelete:"cascade"
+    }),
+    createdAt:timestamp("createdAt").defaultNow(),
+    content:jsonb("content").notNull(),
+    title:text("title").notNull(),
 })
