@@ -8,6 +8,13 @@
       "when": 1764769539524,
       "tag": "0000_melodic_eternals",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1765280062049,
+      "tag": "0001_elite_captain_cross",
+      "breakpoints": true
     }
   ]
 }
