@@ -24,7 +24,6 @@ const ContentShowCase = ({
     }
   },[editor])
   if(!editor) return null
-  console.log(editor.getText());
   return (
     <div>
         {editor.getText()}

@@ -1,4 +1,5 @@
 import ContentShowCase from "@/components/notes/ContentShowCase"
+import DeleteButton from "@/components/notes/DeleteButton"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { getUserNotes } from "@/server/getNotes"
@@ -109,12 +110,7 @@ const page = async () => {
                         Update
                       </Button>
                     </Link>
-                    <Button
-                    variant={"destructive"}
-                    >
-                      <Trash/>
-                      Delete
-                    </Button>
+                    <DeleteButton id={data.id}/>
                   </CardFooter>
                 </CardContent>
               </Card>

@@ -121,6 +121,8 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     return NextResponse.json({
       message: "Fail",
+    },{
+      status:500
     });
   }
 }

@@ -18,55 +18,33 @@ import Image from "@tiptap/extension-image";
 import { ImageUploadNode } from "../tiptap-node/image-upload-node";
 import { MAX_FILE_SIZE } from "@/lib/tiptap-utils";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useState, useTransition } from "react";
 import { Button } from "../ui/button";
-let changedImageUrl:string[]=[]
-function getAllImageNodes(editor: Editor):string[] {
-  if(!editor) return []
-  const images:   string [] = [];
-  function traverse(node: any) {
-    if (!node) return;
-    if (node.type === "image" || node.type === "cloudinaryImage") {
-      images.push(node.attrs.src);
-    }
-    if (node.content) {
-      node.content.forEach(traverse);
-    }
-  }
+import { useParams, useRouter } from "next/navigation";
 
-  traverse(editor.getJSON());
-  return images;
-}
-
-const handleImageUpload = async (file: File) => {
-  try {
-    const form = new FormData();
-    form.append("file", file);
-    const data = await fetch("/api/cloudinary/upload", {
-      method: "POST",
-      body: form,
-    }).then((res) => res.json());
-    toast.success("Image uploaded successfully");
-    return data.url;
-  } catch (error) {
-    toast.error("Image upload failed");
-  }
-};
-const updateImageUrl=(editor:Editor)=>{
-  if(!editor){
-    return null
-  }else{
-    const images=getAllImageNodes(editor)
-    console.log(images)
-  }
-}
 export default function TipTap({ content = "" }: { content?: string }) {
-  const [defaultImages, setDefaultImages] = useState<string[]>([])
+  const id = useParams().id;
+  const router = useRouter();
+  const newContent = JSON.parse(content);
+  const [newImages, setNewImages] = useState<string[]>([]);
+  const [isPending, startTransition] = useTransition();
+  const handleImageUpload = async (file: File) => {
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const data = await fetch("/api/cloudinary/upload", {
+        method: "POST",
+        body: form,
+      }).then((res) => res.json());
+      setNewImages([...newImages, data.url]);
+      toast.success("Image uploaded successfully");
+      return data.url;
+    } catch (error) {
+      toast.error("Image upload failed");
+    }
+  };
   const editor = useEditor({
     immediatelyRender: false,
-    onUpdate:({editor})=>{
-      updateImageUrl(editor)
-    },
     editorProps: {
       attributes: {
         autocomplete: "off",
@@ -76,7 +54,6 @@ export default function TipTap({ content = "" }: { content?: string }) {
         class: "simple-editor",
       },
     },
-
     extensions: [
       StarterKit.configure({
         horizontalRule: false,
@@ -85,19 +62,15 @@ export default function TipTap({ content = "" }: { content?: string }) {
           enableClickSelection: true,
         },
       }),
-
       HorizontalRule,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
-
       TaskList,
       TaskItem.configure({ nested: true }),
-
       Highlight.configure({ multicolor: true }),
       Image,
       Typography,
       Superscript,
       Subscript,
-
       ImageUploadNode.configure({
         accept: "image/*",
         maxSize: MAX_FILE_SIZE,
@@ -109,22 +82,39 @@ export default function TipTap({ content = "" }: { content?: string }) {
       }),
     ],
 
-    content,
+    content: newContent,
   });
-  useEffect(()=>{
-    if(editor){
-      const imageUrl=getAllImageNodes(editor)
-      setDefaultImages(imageUrl)
-    }
-  },[editor])
   return (
     <>
-      <section>
-        <Button>          
+      <section className="mt-10 mb-5 flex gap-5 items-center justify-end md:px-10 px-3">
+        <Button
+          disabled={isPending}
+          onClick={() => {
+            startTransition(async () => {
+              const res = await fetch(`/api/notes/${id}`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(editor?.getJSON()),
+              });
+              if (!res.ok) {
+                if (res.status === 401) {
+                  router.push("/sign-in");
+                } else {
+                  toast.error("Unable to save file at moment");
+                }
+              } else {
+                const data = await res.json();
+                console.log(data);
+                toast.success("Succesfully saved note");
+              }
+            });
+          }}
+        >
+          Save
         </Button>
-        <Button>
-          
-        </Button>
+        <Button disabled={isPending}>Delete</Button>
       </section>
       <SimpleEditor editor={editor} content={content} />
     </>
