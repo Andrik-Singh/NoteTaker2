@@ -21,7 +21,7 @@ import { Delete, Plus, Trash } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 const NewButton = () => {
-  const router=useRouter()
+  const router = useRouter();
   const methods = useForm<z.infer<typeof newNote>>({
     resolver: zodResolver(newNote),
     defaultValues: {
@@ -57,28 +57,27 @@ const NewButton = () => {
   };
   const getNewNote = async (unsafeData: z.infer<typeof newNote>) => {
     try {
-      const { data,error }=newNote.safeParse(unsafeData)
-      if(error){
-        toast.error("Invalid input data")
-        return
+      const { data, error } = newNote.safeParse(unsafeData);
+      if (error) {
+        toast.error("Invalid input data");
+        return;
       }
-      const res=await fetch("/api/notes",{
-        method:"POST",
-        headers:{
-          "Content-Type":"application.json"
+      const res = await fetch("/api/notes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application.json",
         },
-        body:JSON.stringify(data)
-      })
-      console.log(res)
-      if(!res.ok){
-        toast.error("Internal server error occured")
-        return
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        toast.error("Internal server error occured");
+        return;
       }
-      const responseData=await res.json()
-      toast.success("Note added")
-      router.push(`/new-note/${responseData.id}`)
+      const responseData = await res.json();
+      toast.success("Note added");
+      router.push(`/new-note/${responseData.id}`);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
   };
   return (
@@ -133,6 +132,7 @@ const NewButton = () => {
                   >
                     <span>{fields.value}</span>
                     <Button
+                    variant={"destructive"}
                       disabled={isSubmitting}
                       className="my-3"
                       type="button"
@@ -145,11 +145,14 @@ const NewButton = () => {
                   </div>
                 ))}
               </Field>
-              <Field>
-                <Button disabled={isSubmitting} type="submit">
+              <div className="flex flex-row gap-5">
+                <Button 
+                variant={"outline"}
+                disabled={isSubmitting} type="submit">
                   Save
                 </Button>
                 <Button
+                  variant={"destructive"}
                   disabled={isSubmitting}
                   onClick={() => {
                     reset();
@@ -157,7 +160,7 @@ const NewButton = () => {
                 >
                   Reset
                 </Button>
-              </Field>
+              </div>
             </FieldGroup>
           </form>
         </div>

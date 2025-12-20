@@ -1,3 +1,5 @@
+export const dynamic ="force-dynamic"
+export const revalidate=0
 import ContentShowCase from "@/components/notes/ContentShowCase"
 import DeleteButton from "@/components/notes/DeleteButton"
 import { Button } from "@/components/ui/button"
@@ -89,7 +91,7 @@ const page = async () => {
                 <CardContent className="pt-0">
                   {data.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-3">
-                      {data.tags.map((tag, index) => (
+                      {data.tags.map((tag:string, index:number) => (
                         <span
                           key={index}
                           className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium"

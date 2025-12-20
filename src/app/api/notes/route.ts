@@ -1,7 +1,8 @@
 import { db } from "@/db";
-import { noteTable, noteTags } from "@/db/schema";
+import { note_members, note_table, note_tags } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { newNote } from "@/zod/newNote";
+import { randomBytes } from "crypto";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 const boilerPlateCode={
@@ -99,18 +100,23 @@ export async function POST(req: NextRequest) {
     const { user } = authData;
     const randomId = crypto.randomUUID();
     await db.transaction(async (tx) => {
-      const noteTableData = await db.insert(noteTable).values({
-        title: data.title,
-        content: data.content.content.length === 0 ? boilerPlateCode : data.content.content,
+      const noteTableData = await db.insert(note_table).values({
+        note_title: data.title,
+        note_content: data.content.content.length === 0 ? boilerPlateCode : data.content.content,
         id: randomId,
-        userId: user.id,
+        user_id: user.id,
       });
       for(const tag of data.tags){
-        await db.insert(noteTags).values({
-            noteId:randomId,
-            tagName:tag.value,
+        await db.insert(note_tags).values({
+            note_id:randomId,
+            tag_name:tag.value,
         })
       }
+      await db.insert(note_members).values({
+        member_user_id:authData.user.id,
+        note_id:randomId,
+        role:"owner"
+      })
     });
     return NextResponse.json({
       message: "complete",

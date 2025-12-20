@@ -1,11 +1,12 @@
 import { db } from "@/db";
-import { noteTable } from "@/db/schema";
+import { note_table } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { getRoles } from "@/server/getRoles";
 import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(
+export async function PATCH(
   req: NextRequest,
   params: Promise<{
     params: Promise<{
@@ -29,11 +30,8 @@ export async function POST(
       );
     }
     const { id } = await (await params).params;
-    const canUpdateNotes = await db
-      .select()
-      .from(noteTable)
-      .where(and(eq(noteTable.id, id), eq(noteTable.userId, authData.user.id)));
-    if (canUpdateNotes.length <= 0) {
+    const { role } = await getRoles(id);
+    if (role === "reader") {
       return NextResponse.json(
         {
           message: "Unauthorized user",
@@ -42,23 +40,23 @@ export async function POST(
           status: 401,
         }
       );
-    }
-    console.log(body);
-    const updatedNote = await db
-      .update(noteTable)
-      .set({
-        content: body,
-      })
-      .returning();
-    if (updatedNote.length === 0) {
-      return NextResponse.json(
-        {
-          message: "Internal server error occured",
-        },
-        {
-          status: 500,
-        }
-      );
+    } else {
+      const updatedNote = await db
+        .update(note_table)
+        .set({
+          note_content: body,
+        })
+        .returning();
+      if (updatedNote.length === 0) {
+        return NextResponse.json(
+          {
+            message: "Internal server error occured",
+          },
+          {
+            status: 500,
+          }
+        );
+      }
     }
     return NextResponse.json(
       {
@@ -79,12 +77,59 @@ export async function POST(
     );
   }
 }
-export async function DELETE(req:NextRequest) {
-    try {
-      const authData=await auth.api.getSession({
-        headers:await headers()
-      })
-    } catch (error) {
-      
+export async function DELETE(
+  req: NextRequest,
+  params: Promise<{
+    params: Promise<{
+      id: string;
+    }>;
+  }>
+) {
+  try {
+    const authData = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!authData) {
+      return NextResponse.json(
+        {
+          message: "Unauthorized user",
+        },
+        {
+          status: 401,
+        }
+      );
     }
+    const { id } = await (await params).params;
+    const { role } = await getRoles(id);
+    if (role != "owner") {
+      return NextResponse.json(
+        {
+          message: "Unauthorized user",
+        },
+        {
+          status: 401,
+        }
+      );
+    } else {
+      await db.delete(note_table).where(eq(note_table.id, id));
+      return NextResponse.json(
+        {
+          message: "Success",
+        },
+        {
+          status: 200,
+        }
+      );
+    }
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      {
+        message: "Internal server error occured",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }

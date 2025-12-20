@@ -12,12 +12,14 @@ import {
 } from "../ui/dialog"
 import { Button } from "../ui/button"
 import { Trash } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 
 const DeleteButton = ({ id }: { id: string }) => {
   const [isPending, startTransition] = useTransition()
   const [open, setOpen] = useState(false)
   const router=useRouter()
+  const pathname=usePathname()
+  
   const handleDelete = () => {
     startTransition(async () => {
         const res=await fetch(`/api/notes/${id}`,{
@@ -25,6 +27,11 @@ const DeleteButton = ({ id }: { id: string }) => {
         })
         setOpen(false)
     })
+    if(pathname.startsWith("/home")){
+      router.refresh()
+    }else{
+      router.push("/home")
+    }
   }
 
   return (

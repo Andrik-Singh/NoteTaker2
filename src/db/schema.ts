@@ -1,5 +1,14 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index, jsonb } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  index,
+  jsonb,
+  primaryKey,
+} from "drizzle-orm/pg-core";
+
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -91,39 +100,142 @@ export const accountRelations = relations(account, ({ one }) => ({
     references: [user.id],
   }),
 }));
-export const noteTable=pgTable("NoteTable",{
-    id:text("id").primaryKey().notNull(),
-    userId:text("userId").references(()=>user.id,{
-        onDelete:"cascade"
-    }).notNull(),
-    content:jsonb("noteContent").notNull(),
-    title:text("noteTitle").notNull(),
-    createdAt:timestamp("createdAt").notNull().defaultNow(),
-    updatedAt:timestamp("updatedAt").$onUpdate(()=>new Date()).defaultNow(),
-})
-export const noteTags =pgTable("noteTags",{
-  noteId:text("noteId").notNull(),
-  tagName:text("tagName").notNull(),
-})
-export const noteMembers=pgTable("noteMembers",{
-    userId:text("memberUserId").references(()=>user.id,{
-      onDelete:"cascade"
-    }).notNull(),
-    noteId:text("noteId").references(()=>noteTable.id,{
-      onDelete:"cascade"
-    }).notNull(),
-    role:text("role").notNull(),
-    joinedAt:timestamp("joinedAt").defaultNow()
-})
-export const noteVersions=pgTable("noteVersions",{
-    noteId:text("noteId").references(()=>noteTable.id,{
-      onDelete:"cascade"
-    }),
-    versionId:text("versionId").primaryKey().notNull(),
-    changedBy:text("userId").references(()=>user.id,{
-      onDelete:"cascade"
-    }),
-    createdAt:timestamp("createdAt").defaultNow(),
-    content:jsonb("content").notNull(),
-    title:text("title").notNull(),
-})
+
+export const note_table = pgTable("notes", {
+  id: text("id").primaryKey().notNull(),
+  user_id: text("user_id")
+    .references(() => user.id, { onDelete: "cascade" })
+    .notNull(),
+  note_content: jsonb("note_content").notNull(),
+  note_title: text("note_title").notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+},(t)=>({
+  note_id_idx:index("note_id_idx").on(t.id),
+  note_user_id:index("note_user_id").on(t.user_id),
+}));
+
+export const tokens = pgTable(
+  "tokens",
+  {
+    id: text("id").primaryKey(),
+    created_by: text("created_by")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    created_at: timestamp("created_at").defaultNow().notNull(),
+    expires_at: timestamp("expires_at").notNull(),
+    revoked_at: timestamp("revoked_at"),
+  },
+  (t) => ({
+    expires_idx: index("tokens_expires_idx").on(t.expires_at),
+    user_idx: index("tokens_user_idx").on(t.created_by),
+  })
+);
+
+export const note_tags = pgTable(
+  "note_tags",
+  {
+    note_id: text("note_id")
+      .references(() => note_table.id, { onDelete: "cascade" })
+      .notNull(),
+    tag_name: text("tag_name").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.note_id, t.tag_name] })]
+);
+
+export const note_members = pgTable(
+  "note_members",
+  {
+    member_user_id: text("member_user_id")
+      .references(() => user.id, { onDelete: "cascade" })
+      .notNull(),
+    note_id: text("note_id")
+      .references(() => note_table.id, { onDelete: "cascade" })
+      .notNull(),
+    role: text("role").notNull(),
+    joined_at: timestamp("joined_at").defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.member_user_id, t.note_id] })]
+);
+
+export const note_versions = pgTable("note_versions", {
+  version_id: text("version_id").primaryKey().notNull(),
+  note_id: text("note_id").references(() => note_table.id, {
+    onDelete: "cascade",
+  }),
+  changed_by: text("changed_by").references(() => user.id, {
+    onDelete: "cascade",
+  }),
+  content: jsonb("content").notNull(),
+  title: text("title").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+export const tokenRelations = relations(tokens, ({ one }) => ({
+  user: one(user, {
+    fields: [tokens.created_by],
+    references: [user.id],
+    relationName: "user_tokens", // Same as above
+  }),
+}));
+
+// Note table relations
+export const noteTableRelations = relations(note_table, ({ one, many }) => ({
+  user: one(user, {
+    fields: [note_table.user_id],
+    references: [user.id],
+    relationName: "user_notes", // Same as above
+  }),
+  tags: many(note_tags, { relationName: "note_tags_relation" }), // Added relation name
+  members: many(note_members, { relationName: "note_members_relation" }), // Added relation name
+  versions: many(note_versions, { relationName: "note_versions_relation" }), // Added relation name
+}));
+
+// Note tags relations
+export const noteTagsRelations = relations(note_tags, ({ one }) => ({
+  note: one(note_table, {
+    fields: [note_tags.note_id],
+    references: [note_table.id],
+    relationName: "note_tags_relation", // Same as above
+  }),
+}));
+
+// Note members relations
+export const noteMembersRelations = relations(note_members, ({ one }) => ({
+  note: one(note_table, {
+    fields: [note_members.note_id],
+    references: [note_table.id],
+    relationName: "note_members_relation", // Same as above
+  }),
+  user: one(user, {
+    fields: [note_members.member_user_id],
+    references: [user.id],
+    relationName: "user_note_memberships", // Same as above
+  }),
+}));
+
+// Note versions relations
+export const noteVersionsRelations = relations(note_versions, ({ one }) => ({
+  note: one(note_table, {
+    fields: [note_versions.note_id],
+    references: [note_table.id],
+    relationName: "note_versions_relation", // Same as above
+  }),
+  user: one(user, {
+    fields: [note_versions.changed_by],
+    references: [user.id],
+    relationName: "user_note_versions", // Same as above
+  }),
+}));
+export const allRelations = [
+  userRelations,
+  sessionRelations,
+  accountRelations,
+  tokenRelations,
+  noteTableRelations,
+  noteTagsRelations,
+  noteMembersRelations,
+  noteVersionsRelations,
+];

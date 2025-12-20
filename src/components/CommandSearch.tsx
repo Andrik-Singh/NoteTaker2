@@ -7,6 +7,7 @@ import {
   CreditCard,
   Home,
   Notebook,
+  Search,
   Settings,
   Share,
   Smile,
@@ -24,6 +25,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { useRouter } from "next/navigation";
+import { Input } from "./ui/input";
 
 export default function CommandSearch() {
   const [open, setOpen] = React.useState(false);
@@ -50,15 +52,19 @@ export default function CommandSearch() {
 
   return (
     <>
-      <p
-        onClick={() => setOpen((open) => !open)}
-        className="text-muted-foreground space-x-3 px-4 p-2 rounded-2xl bg-gray-300 text-sm"
-      >
-        <span>Search notes</span>
-        <kbd className="bg-muted text-muted-foreground inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium">
-          <span className="text-xs">⌘</span>J
-        </kbd>
-      </p>
+      <div 
+      onClick={()=>{
+        setOpen(true)
+      }}
+      className="relative w-auto">
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          readOnly
+          type="search"
+          placeholder="Search..."
+          className="w-full pl-10 pr-4 h-10"
+        />
+      </div>
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput placeholder="Search for notes or navigate pages" />
@@ -72,7 +78,7 @@ export default function CommandSearch() {
                 key={nav.name}
                 onSelect={() => {
                   router.push(nav.link);
-                  setOpen(false); 
+                  setOpen(false);
                 }}
                 className="flex items-center gap-2"
               >

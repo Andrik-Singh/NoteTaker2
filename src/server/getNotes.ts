@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { noteTable, noteTags } from "@/db/schema";
+import { note_table, note_tags } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { error } from "console";
 import { eq, sql } from "drizzle-orm";
@@ -20,18 +20,18 @@ export const getUserNotes = async () => {
     }
     const data = await db
       .select({
-        id: noteTable.id,
-        userId: noteTable.userId,
-        noteContent: noteTable.content,
-        noteTitle: noteTable.title,
-        createdAt: noteTable.createdAt,
-        updatedAt: noteTable.updatedAt,
-        tags: sql<string[]>`array_agg(${noteTags.tagName})`.as("tags"),
+        id: note_table.id,
+        userId: note_table.user_id,
+        noteContent: note_table.note_content,
+        noteTitle: note_table.note_title,
+        createdAt: note_table.created_at,
+        updatedAt: note_table.updated_at,
+        tags: sql<string[]>`array_agg(${note_tags.tag_name})`.as("tags"),
       })
-      .from(noteTable)
-      .innerJoin(noteTags, eq(noteTable.id, noteTags.noteId))
-      .groupBy(noteTable.id)
-      .where(eq(noteTable.userId, authData.user.id));
+      .from(note_table)
+      .innerJoin(note_tags, eq(note_table.id, note_tags.note_id))
+      .groupBy(note_table.id)
+      .where(eq(note_table.user_id, authData.user.id));
     return {
       error: null,
       data,

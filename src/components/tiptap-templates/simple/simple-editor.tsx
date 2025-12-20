@@ -5,7 +5,6 @@ import { Editor, EditorContent, EditorContext } from "@tiptap/react";
 
 // --- UI Primitives ---
 import { Button } from "@/components/tiptap-ui-primitive/button";
-import { Spacer } from "@/components/tiptap-ui-primitive/spacer";
 import {
   Toolbar,
   ToolbarGroup,
@@ -28,16 +27,14 @@ import { ImageUploadButton } from "@/components/tiptap-ui/image-upload-button";
 import { ListDropdownMenu } from "@/components/tiptap-ui/list-dropdown-menu";
 import { BlockquoteButton } from "@/components/tiptap-ui/blockquote-button";
 import { CodeBlockButton } from "@/components/tiptap-ui/code-block-button";
-import {
-  ColorHighlightPopover,
-} from "@/components/tiptap-ui/color-highlight-popover";
-import {
-  LinkPopover,
-} from "@/components/tiptap-ui/link-popover";
+import { ColorHighlightPopover } from "@/components/tiptap-ui/color-highlight-popover";
+import { LinkPopover } from "@/components/tiptap-ui/link-popover";
 import { MarkButton } from "@/components/tiptap-ui/mark-button";
 import { TextAlignButton } from "@/components/tiptap-ui/text-align-button";
-import { UndoRedoButton } from "@/components/tiptap-ui/undo-redo-button";
-
+import {
+  HistoryShortcutBadge,
+  UndoRedoButton,
+} from "@/components/tiptap-ui/undo-redo-button";
 
 // --- Hooks ---
 import { useIsBreakpoint } from "@/hooks/use-is-breakpoint";
@@ -49,22 +46,42 @@ import { ThemeToggle } from "@/components/tiptap-templates/simple/theme-toggle";
 
 // --- Styles ---
 import "@/components/tiptap-templates/simple/simple-editor.scss";
+import { RotateCcw, RotateCw, Undo } from "lucide-react";
+import { Badge } from "@/components/tiptap-ui-primitive/badge";
 
 const MainToolbarContent = ({
   onHighlighterClick,
   onLinkClick,
   isMobile,
+  editor,
 }: {
   onHighlighterClick: () => void;
   onLinkClick: () => void;
   isMobile: boolean;
+  editor: Editor;
 }) => {
   return (
     <section className="flex items-center justify-center w-screen flex-wrap ">
-      <ToolbarGroup>
-        <UndoRedoButton action="undo" />
-        <UndoRedoButton action="redo" />
+      <ToolbarGroup className="space-x-1 mx-2">
+        <Button
+          disabled={!editor?.can().undo()}
+          className="inline-flex items-center justify-center rounded-md border bg-white shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition"
+          onClick={() => editor.chain().focus().undo().run()}
+        >
+          <RotateCcw className="w-4 h-4" />
+          <span className="sr-only">Undo</span>
+        </Button>
+
+        <Button
+          disabled={!editor?.can().redo()}
+          onClick={() => editor.chain().focus().redo().run()}
+          className="inline-flex items-center justify-center rounded-md border bg-white shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition"
+        >
+          <RotateCw className="w-4 h-4" />
+          <span className="sr-only">Redo</span>
+        </Button>
       </ToolbarGroup>
+
       <ToolbarSeparator />
       <ToolbarGroup>
         <HeadingDropdownMenu levels={[1, 2, 3, 4]} portal={isMobile} />
@@ -82,10 +99,8 @@ const MainToolbarContent = ({
         <MarkButton type="strike" />
         <MarkButton type="code" />
         <MarkButton type="underline" />
-        <ColorHighlightPopover
-          hideWhenUnavailable={true}
-        />
-        <LinkPopover/>
+        <ColorHighlightPopover hideWhenUnavailable={true} />
+        <LinkPopover />
       </ToolbarGroup>
       <ToolbarSeparator />
       <ToolbarGroup>
@@ -108,14 +123,12 @@ const MainToolbarContent = ({
   );
 };
 
-
-
 export function SimpleEditor({
   content = "",
   editor,
 }: {
   content?: string;
-  editor: Editor | null;
+  editor: Editor;
 }) {
   const isMobile = useIsBreakpoint();
   const { height } = useWindowSize();
@@ -149,6 +162,7 @@ export function SimpleEditor({
           }}
         >
           <MainToolbarContent
+            editor={editor}
             onHighlighterClick={() => setMobileView("highlighter")}
             onLinkClick={() => setMobileView("link")}
             isMobile={isMobile}

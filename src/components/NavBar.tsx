@@ -11,7 +11,7 @@ const NavBar = async () => {
   });
   return (
     <header className="flex mx-5 pt-4 justify-between items-center flex-row">
-      <h1>NavBar Component</h1>
+
       <CommandSearch />
       {authData?.user ? (
         <div>

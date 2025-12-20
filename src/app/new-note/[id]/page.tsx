@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 import TipTap from "@/components/notes/tiptap";
 import { db } from "@/db";
-import { noteTable } from "@/db/schema";
+import { note_table, note_tags } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 const page = async ({
@@ -13,11 +13,11 @@ const page = async ({
   }>;
 }) => {
   const { id } = await params;
-  const res = await db.select().from(noteTable).where(eq(noteTable.id, id));
-  const content = JSON.stringify(res[0].content);
+  const res = await db.select().from(note_table).where(eq(note_table.id, id));
+  const content = JSON.stringify(res[0].note_content);
   return (
     <div>
-      <TipTap content={content} />
+      <TipTap updatedAt={res[0].updated_at} content={content} />
     </div>
   );
 };

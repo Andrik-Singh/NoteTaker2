@@ -1,0 +1,1 @@
+ALTER TABLE "noteTags" ADD CONSTRAINT "noteTags_noteId_NoteTable_id_fk" FOREIGN KEY ("noteId") REFERENCES "public"."NoteTable"("id") ON DELETE cascade ON UPDATE no action;

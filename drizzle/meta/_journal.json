@@ -15,6 +15,20 @@
       "when": 1765280062049,
       "tag": "0001_elite_captain_cross",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765705266257,
+      "tag": "0002_careless_kinsey_walden",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1765705908437,
+      "tag": "0003_bitter_lockjaw",
+      "breakpoints": true
     }
   ]
 }
