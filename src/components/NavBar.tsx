@@ -15,7 +15,7 @@ const NavBar = async () => {
       <CommandSearch />
       {authData?.user ? (
         <div>
-          <span>Welcome, {authData.user.email}</span>
+          <SignOutButton></SignOutButton>
         </div>
       ) : (
         <div>

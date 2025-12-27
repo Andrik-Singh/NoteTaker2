@@ -2,10 +2,13 @@ import { db } from "@/db";
 import { note_table } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { getRoles } from "@/server/getRoles";
+import { Liveblocks } from "@liveblocks/node";
 import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-
+const liveblocks=new Liveblocks({
+  secret:process.env.LIVEBLOCKS_SECRET_KEY as string
+})
 export async function PATCH(
   req: NextRequest,
   params: Promise<{
@@ -46,6 +49,7 @@ export async function PATCH(
         .set({
           note_content: body,
         })
+        .where(eq(note_table.id,id))
         .returning();
       if (updatedNote.length === 0) {
         return NextResponse.json(
@@ -112,6 +116,14 @@ export async function DELETE(
       );
     } else {
       await db.delete(note_table).where(eq(note_table.id, id));
+      await liveblocks.deleteRoom(id).catch((error)=>{
+        console.error(error)
+        return NextResponse.json({
+          message:"Internal server error occured"
+        },{
+          status:402
+        })
+      })
       return NextResponse.json(
         {
           message: "Success",

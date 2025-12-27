@@ -1,11 +1,12 @@
 "use server";
 
 import { db } from "@/db";
-import { note_table, note_tags } from "@/db/schema";
+import { note_members, note_table, note_tags, note_versions } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { error } from "console";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
+import { success } from "zod";
 
 export const getUserNotes = async () => {
   try {
@@ -42,5 +43,49 @@ export const getUserNotes = async () => {
       error: "Internal server error occured",
       data: null,
     };
+  }
+};
+export const getSpecificNotes = async (id: string) => {
+  try {
+    const authData = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!authData) {
+      return {
+        success: false,
+        data: null,
+        error:"Unauthorized user"
+      };
+    }
+    const {
+      user
+    } = authData;
+    const noteMembersTable=await db.select().from(note_members).where(
+      and(
+        eq(note_members.note_id,id),
+        eq(note_members.member_user_id,user.id)
+      )
+    )
+    console.log(noteMembersTable)
+    if(noteMembersTable.length === 0){
+      return{
+        success:false,
+        data:null,
+        error:"Unauthorized user"
+      }
+    }
+    const noteData=await db.select().from(note_table).where(
+      eq(note_table.id,id)
+    )
+    return{
+      success:true,
+      data:noteData
+    }
+  } catch (error) {
+    console.error(error)
+    return{
+      success:false,
+      data:null
+    }
   }
 };

@@ -1,5 +1,8 @@
 "use client";
-
+import {
+  useLiveblocksExtension,
+  FloatingToolbar,
+} from "@liveblocks/react-tiptap";
 import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
 import { Editor, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -18,11 +21,13 @@ import Image from "@tiptap/extension-image";
 import { ImageUploadNode } from "../tiptap-node/image-upload-node";
 import { MAX_FILE_SIZE } from "@/lib/tiptap-utils";
 import { toast } from "sonner";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useRef } from "react";
 import { Button } from "../ui/button";
 import { useParams, useRouter } from "next/navigation";
 import DeleteButton from "./DeleteButton";
 import CopyButton from "./CopyButton";
+import { useRoom, useStorage } from "@liveblocks/react/suspense";
+
 const getLastUpdatedTime = (diffTime: number): string => {
   const days = Math.floor(diffTime / (24 * 60 * 60 * 1000));
   const hours = Math.floor((diffTime / (60 * 60 * 1000)) % 24);
@@ -49,10 +54,16 @@ export default function TipTap({
   );
   const id = useParams().id as string;
   const router = useRouter();
-  const newContent = JSON.parse(content);
-  const [newEditor, setNewEditor] = useState<Editor | null>(null);
+  
+  const liveblocks = useLiveblocksExtension({
+  });
+  const room = useRoom();
+  
   const [newImages, setNewImages] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
+  const [isInitialized, setIsInitialized] = useState(false);
+  const hasInitializedRef = useRef(false);
+
   const handleImageUpload = async (file: File) => {
     try {
       const form = new FormData();
@@ -68,6 +79,7 @@ export default function TipTap({
       toast.error("Image upload failed");
     }
   };
+
   const editor = useEditor({
     immediatelyRender: false,
     editorProps: {
@@ -80,12 +92,10 @@ export default function TipTap({
       },
     },
     extensions: [
+      liveblocks,
       StarterKit.configure({
         horizontalRule: false,
-        link: {
-          openOnClick: false,
-          enableClickSelection: true,
-        },
+        undoRedo:false
       }),
       HorizontalRule,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
@@ -106,24 +116,61 @@ export default function TipTap({
         onError: (error) => console.error("Upload failed:", error),
       }),
     ],
-
-    content: newContent,
   });
   useEffect(() => {
-    if (editor) {
-      setNewEditor(editor);
-    }
-  }, [editor]);
-  if (!newEditor) return <div>loading</div>;
+    if (!editor || !room || hasInitializedRef.current) return;
+
+    const initContent = async () => {
+      hasInitializedRef.current = true;
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const htmlContent = editor.getHTML();
+      const jsonContent = editor.getJSON();
+      const isCompletelyEmpty = 
+        htmlContent === '<p></p>' || 
+        htmlContent === '' ||
+        (jsonContent.content?.length === 1 && 
+         jsonContent.content[0].type === 'paragraph' &&
+         !jsonContent.content[0].content);
+      if (isCompletelyEmpty && content) {
+        try {
+          const parsedContent = JSON.parse(content);
+          editor.commands.setContent(parsedContent, {
+            emitUpdate: false,
+          });
+        } catch (error) {
+          console.error("Failed to parse content:", error);
+        }
+      } else if (!isCompletelyEmpty) {
+        console.log("Liveblocks has content - skipping DB load");
+      } else {
+        console.log("No content available");
+      }
+
+      setIsInitialized(true);
+    };
+
+    initContent();
+  }, [editor, room]); 
+
+  if (!editor || !isInitialized) {
+    return <div>Loading editor...</div>;
+  }
+
+  if (!room) {
+    return <div>Connecting to room...</div>;
+  }
+
   return (
     <>
       <section className="flex md:flex-row gap-3 flex-col mt-10 mb-5 px-3 md:px-10 items-center justify-between w-full">
         <section className="space-x-2">
-          <CopyButton role="reader"></CopyButton>
-          <CopyButton role="writer"></CopyButton>
+          <CopyButton role="reader" />
+          <CopyButton role="writer" />
         </section>
-        <div className="flex flex-wrap gap-5 items-center justify-end x">
-          <p className="italic md:block  hidden">Updated at:{lastUpdatedAt}</p>
+        <div className="flex flex-wrap gap-5 items-center justify-end">
+          <p className="italic md:block hidden">
+            Updated at: {lastUpdatedAt}
+          </p>
           <Button
             disabled={isPending}
             onClick={() => {
@@ -142,9 +189,8 @@ export default function TipTap({
                     toast.error("Unable to save file at moment");
                   }
                 } else {
-                  const data = await res.json();
                   setLastUpdatedAt(getLastUpdatedTime(0));
-                  toast.success("Succesfully saved note");
+                  toast.success("Successfully saved note");
                 }
               });
             }}
@@ -154,7 +200,7 @@ export default function TipTap({
           <DeleteButton id={id} />
         </div>
       </section>
-      <SimpleEditor editor={newEditor} content={content} />
+      <SimpleEditor editor={editor} />
     </>
   );
 }
