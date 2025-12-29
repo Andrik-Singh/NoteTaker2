@@ -8,7 +8,7 @@ const ContentShowCase = ({
 }: {
   content: {
     type: string;
-    content: [];
+    content: any[];
   };
 }) => {
   const [newEditor, setnewEditor] = useState<Editor | null>(null)

@@ -26,7 +26,7 @@ import { Button } from "../ui/button";
 import { useParams, useRouter } from "next/navigation";
 import DeleteButton from "./DeleteButton";
 import CopyButton from "./CopyButton";
-import { useRoom, useStorage } from "@liveblocks/react/suspense";
+import { useRoom, useStatus, useStorage } from "@liveblocks/react/suspense";
 
 const getLastUpdatedTime = (diffTime: number): string => {
   const days = Math.floor(diffTime / (24 * 60 * 60 * 1000));
@@ -54,15 +54,14 @@ export default function TipTap({
   );
   const id = useParams().id as string;
   const router = useRouter();
-  
-  const liveblocks = useLiveblocksExtension({
-  });
+
+  const liveblocks = useLiveblocksExtension();
   const room = useRoom();
-  
+  const status=useStatus()
   const [newImages, setNewImages] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
   const [isInitialized, setIsInitialized] = useState(false);
-  const hasInitializedRef = useRef(false);
+  const hasLoadedFromDB = useRef(false);
 
   const handleImageUpload = async (file: File) => {
     try {
@@ -118,39 +117,81 @@ export default function TipTap({
     ],
   });
   useEffect(() => {
-    if (!editor || !room || hasInitializedRef.current) return;
+    if (!editor || !room || hasLoadedFromDB.current) return;
 
     const initContent = async () => {
-      hasInitializedRef.current = true;
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      if(status!= "connected"){
+        console.log("Liveblocks is not ready")
+        return
+      }
       const htmlContent = editor.getHTML();
       const jsonContent = editor.getJSON();
-      const isCompletelyEmpty = 
-        htmlContent === '<p></p>' || 
-        htmlContent === '' ||
-        (jsonContent.content?.length === 1 && 
-         jsonContent.content[0].type === 'paragraph' &&
-         !jsonContent.content[0].content);
-      if (isCompletelyEmpty && content) {
+      const hasLiveblocksContent = (() => {
+        if (!jsonContent.content || jsonContent.content.length === 0) {
+          return false;
+        }
+        for (const node of jsonContent.content) {
+          if (node.type !== "paragraph") {
+            return true;
+          }
+          if (node.content && node.content.length > 0) {
+            return true;
+          }
+          if (node.attrs && Object.keys(node.attrs).length > 0) {
+            return true;
+          }
+        }
+
+        return false;
+      })();
+      if (!hasLiveblocksContent && content) {
         try {
           const parsedContent = JSON.parse(content);
+          editor.commands.clearContent();
+          await new Promise((resolve) => setTimeout(resolve, 100));
           editor.commands.setContent(parsedContent, {
             emitUpdate: false,
           });
+          hasLoadedFromDB.current = true;
         } catch (error) {
           console.error("Failed to parse content:", error);
         }
-      } else if (!isCompletelyEmpty) {
-        console.log("Liveblocks has content - skipping DB load");
+      } else if (hasLiveblocksContent) {
+        console.log("Using Liveblocks content - NOT loading from DB");
+        hasLoadedFromDB.current = true;
       } else {
         console.log("No content available");
+        hasLoadedFromDB.current = true;
       }
 
       setIsInitialized(true);
     };
 
     initContent();
-  }, [editor, room]); 
+  }, [editor, room, content,status]);
+  useEffect(() => {
+    if (!editor) return;
+
+    const handleSave = async () => {
+      try {
+        await fetch(`/api/notes/${id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(editor.getJSON()),
+        });
+      } catch (error) {
+        console.error(" Auto-save failed:", error);
+      }
+    };
+
+    window.addEventListener("beforeunload", handleSave);
+    
+    return () => {
+      window.removeEventListener("beforeunload", handleSave);
+    };
+  }, [editor, id]); 
 
   if (!editor || !isInitialized) {
     return <div>Loading editor...</div>;
@@ -164,24 +205,26 @@ export default function TipTap({
     <>
       <section className="flex md:flex-row gap-3 flex-col mt-10 mb-5 px-3 md:px-10 items-center justify-between w-full">
         <section className="space-x-2">
-          <CopyButton role="reader" />
           <CopyButton role="writer" />
         </section>
         <div className="flex flex-wrap gap-5 items-center justify-end">
-          <p className="italic md:block hidden">
-            Updated at: {lastUpdatedAt}
-          </p>
+          <p className="italic md:block hidden">Updated at: {lastUpdatedAt}</p>
           <Button
             disabled={isPending}
             onClick={() => {
               startTransition(async () => {
+                const content = editor.getJSON();
+                
+                console.log("💾 Manual save - Document:", id);
+                
                 const res = await fetch(`/api/notes/${id}`, {
                   method: "PATCH",
                   headers: {
                     "Content-Type": "application/json",
                   },
-                  body: JSON.stringify(editor?.getJSON()),
+                  body: JSON.stringify(content),
                 });
+                
                 if (!res.ok) {
                   if (res.status === 401) {
                     router.push("/sign-in");
