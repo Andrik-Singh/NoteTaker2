@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Button } from "../ui/button";
 import { notFound, useParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
+import { error } from "console";
 
 const CopyButton = ({ role }: { role: string }) => {
   const { id } = useParams();
@@ -29,39 +30,37 @@ const CopyButton = ({ role }: { role: string }) => {
         try {
           setCopying(3);
           setLoading(true)
+          const token=crypto.randomUUID()
           const res = await fetch(`/api/token-generation/${id}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ role }),
+            body: JSON.stringify({ role,token }),
           });
-
+          
           if (!res.ok) {
             toast.error(
               res.status === 401
-                ? "Unauthorized access"
-                : "Internal server error"
+              ? "Unauthorized access"
+              : "Internal server error"
             );
             setLoading(false)
             return;
           }
-
-          const data = await res.json();
-
-          const shareLink = `${window.location.origin}/note/authorization/${id}?token=${data.id}&role=${role}`;
-
+          const shareLink = `${window.location.origin}/note/authorization/${id}?token=${token}&role=${role}`;
           setLink(shareLink);
           await navigator.clipboard.writeText(shareLink);
 
           toast.success("Successfully copied");
           setLoading(false)
-        } catch {
+        } catch (error){
+          console.log(error)
           toast.error("Something went wrong");
           setLoading(false)
         }
       }}
       variant={"outline"}
     >
-      Share as {role}
+      Collab with other users
     </Button>
   );
 };

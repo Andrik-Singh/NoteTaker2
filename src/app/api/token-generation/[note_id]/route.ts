@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { note_members, tokens } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { getRoles } from "@/server/getRoles";
+import { error } from "console";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -17,6 +18,7 @@ export async function POST(
     const body = await req.json();
     console.log(body.role)
     if (body.role != "reader" && body.role != "writer" && !body.role) {
+      console.log("error")
       return NextResponse.json(
         {
           message: "Invalid input",
@@ -58,7 +60,7 @@ export async function POST(
       .insert(tokens)
       .values({
         created_by: authData.user.id,
-        id: crypto.randomUUID(),
+        id: body.token,
         expires_at: new Date(sevenDaysLater),
       })
       .returning({
