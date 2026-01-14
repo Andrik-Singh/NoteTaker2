@@ -5,15 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { toast } from "sonner";
 
-const Page = () => {
+function ResetPasswordForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const token = useSearchParams().get("token");
   const router = useRouter();
+  
   const onSubmit = async () => {
     if (
       password !== confirmPassword ||
@@ -47,8 +48,9 @@ const Page = () => {
       }
     }
   };
+  
   return (
-    <div className="flex  justify-center mt-5 px-4">
+    <div className="flex justify-center mt-5 px-4">
       <Card className="w-full max-w-md shadow-xl border border-gray-200">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-semibold">
@@ -97,6 +99,24 @@ const Page = () => {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+const Page = () => {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center mt-5 px-4">
+        <Card className="w-full max-w-md shadow-xl border border-gray-200">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-semibold">
+              Loading...
+            </CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 };
 

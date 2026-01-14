@@ -11,8 +11,7 @@ import { auth } from "@/lib/auth";
 import { error } from "console";
 import { and, eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
-import { success } from "zod";
-type Note = {
+export type Note = {
   id: string;
   userId: string;
   noteContent: {
@@ -51,7 +50,8 @@ export const getUserNotes = async (): Promise<{
       .from(note_table)
       .innerJoin(note_tags, eq(note_table.id, note_tags.note_id))
       .groupBy(note_table.id)
-      .where(eq(note_table.user_id, authData.user.id));
+      .where(eq(note_table.user_id, authData.user.id))
+      .limit(50);
     const data: Note[] = rawData.map((row): Note => ({
       id: row.id,
       userId: row.userId,

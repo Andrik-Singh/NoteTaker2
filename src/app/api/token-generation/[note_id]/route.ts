@@ -8,11 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
   req: NextRequest,
-  params: Promise<{
-    params: Promise<{
-      note_id: string;
-    }>;
-  }>
+  { params }: { params: Promise<{ note_id: string }> }
 ) {
   try {
     const body = await req.json();
@@ -31,7 +27,7 @@ export async function POST(
     const authData = await auth.api.getSession({
       headers: await headers(),
     });
-    const { note_id } = await (await params).params;
+    const { note_id } = await params; 
     if (!authData || !note_id) {
       return NextResponse.json(
         {

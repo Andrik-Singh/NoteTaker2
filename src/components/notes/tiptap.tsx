@@ -173,6 +173,7 @@ export default function TipTap({
   const handleSave = useCallback(async () => {
     try {
       if (!editor) return;
+      console.log("Auto Saving")
       await fetch(`/api/notes/${id}`, {
         method: "PATCH",
         headers: {
@@ -180,6 +181,8 @@ export default function TipTap({
         },
         body: JSON.stringify(editor.getJSON()),
       });
+      toast.success("Auto saved file");
+      setLastUpdatedAt(getLastUpdatedTime(0))
     } catch (error) {
       console.error(" Auto-save failed:", error);
     }
@@ -195,8 +198,8 @@ export default function TipTap({
     const onupdate = () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = setTimeout(() => {
-        handleSave()
-      }, 5000);
+        handleSave();
+      }, 8000);
     };
     editor.on("update", onupdate);
     return () => {
@@ -216,7 +219,7 @@ export default function TipTap({
     <>
       <section className="flex md:flex-row gap-3 flex-col mt-10 mb-5 px-3 md:px-10 items-center justify-between w-full">
         <section className="flex gap-2 items-center">
-          <ImportDropdown editor={editor}/>
+          <ImportDropdown editor={editor} />
           <CopyButton role="writer" />
         </section>
         <div className="flex flex-wrap gap-5 items-center justify-end">

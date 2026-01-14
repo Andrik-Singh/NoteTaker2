@@ -1,7 +1,8 @@
 "use client";
-import { Editor, useEditor } from "@tiptap/react";
+import Image from "@tiptap/extension-image";
+import {  useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useEffect, useState } from "react";
+import { useMemo, useEffect } from "react";
 
 const ContentShowCase = ({
   content,
@@ -11,24 +12,21 @@ const ContentShowCase = ({
     content: any[];
   };
 }) => {
-  const [newEditor, setnewEditor] = useState<Editor | null>(null)
   const editor = useEditor({
     content: content,
     editable: false,
-    immediatelyRender: false,
-    extensions:[StarterKit]
+    immediatelyRender:false,
+    extensions: [StarterKit,Image],
   });
-  useEffect(()=>{
-    if(editor){
-        setnewEditor(editor)
-    }
-  },[editor])
-  if(!editor) return null
-  return (
-    <div>
-        {editor.getText()}
-    </div>
-  );
+
+  const textContent = useMemo(() => {
+    if (!editor) return "";
+    return editor.getText();
+  }, [editor]);
+
+  if (!editor) return null;
+
+  return <div>{textContent}</div>;
 };
 
 export default ContentShowCase;

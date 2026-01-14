@@ -62,27 +62,6 @@ const MainToolbarContent = ({
 }) => {
   return (
     <section className="flex items-center justify-center w-screen flex-wrap ">
-      <ToolbarGroup className="space-x-1 mx-2">
-        <Button
-          disabled={!editor?.can().undo()}
-          className="inline-flex items-center justify-center rounded-md border bg-white shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition"
-          onClick={() => editor.chain().focus().undo().run()}
-        >
-          <RotateCcw className="w-4 h-4" />
-          <span className="sr-only">Undo</span>
-        </Button>
-
-        <Button
-          disabled={!editor?.can().redo()}
-          onClick={() => editor.chain().focus().redo().run()}
-          className="inline-flex items-center justify-center rounded-md border bg-white shadow-sm hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition"
-        >
-          <RotateCw className="w-4 h-4" />
-          <span className="sr-only">Redo</span>
-        </Button>
-      </ToolbarGroup>
-
-      <ToolbarSeparator />
       <ToolbarGroup>
         <HeadingDropdownMenu levels={[1, 2, 3, 4]} portal={isMobile} />
         <ListDropdownMenu
