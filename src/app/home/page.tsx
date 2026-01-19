@@ -1,5 +1,5 @@
 export const revalidate = 0
-
+export const dynamic = "force-dynamic"
 import ContentShowCase from "@/components/notes/ContentShowCase"
 import DeleteButton from "@/components/notes/DeleteButton"
 import { Button } from "@/components/ui/button"

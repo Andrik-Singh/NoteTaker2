@@ -2,74 +2,91 @@ import { db } from "@/db";
 import { note_members, note_table, note_tags } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { newNote } from "@/zod/newNote";
-import { randomBytes } from "crypto";
+import { Liveblocks } from "@liveblocks/node";
+import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-const boilerPlateCode={
-  "type": "doc",
-  "content": [
+import * as Y from "yjs";
+import { getSchema } from "@tiptap/core";
+import StarterKit from "@tiptap/starter-kit";
+export const tiptapSchema=getSchema([StarterKit])
+const boilerPlateCode = {
+  type: "doc",
+  content: [
     {
-      "type": "heading",
-      "attrs": { "level": 1 },
-      "content": [{ "type": "text", "text": "Untitled Document" }]
+      type: "heading",
+      attrs: { level: 1 },
+      content: [{ type: "text", text: "Untitled Document" }],
     },
     {
-      "type": "paragraph",
-      "content": [
+      type: "paragraph",
+      content: [
         {
-          "type": "text",
-          "text": "Start writing your content here. You can add headings, lists, quotes, code blocks, and more using the toolbar or keyboard shortcuts."
-        }
-      ]
+          type: "text",
+          text: "Start writing your content here. You can add headings, lists, quotes, code blocks, and more using the toolbar or keyboard shortcuts.",
+        },
+      ],
     },
     {
-      "type": "heading",
-      "attrs": { "level": 2 },
-      "content": [{ "type": "text", "text": "Example Section" }]
+      type: "heading",
+      attrs: { level: 2 },
+      content: [{ type: "text", text: "Example Section" }],
     },
     {
-      "type": "paragraph",
-      "content": [
-        { "type": "text", "text": "This is an example paragraph to help you get started." }
-      ]
-    },
-    {
-      "type": "bulletList",
-      "content": [
+      type: "paragraph",
+      content: [
         {
-          "type": "listItem",
-          "content": [
-            { "type": "paragraph", "content": [{ "type": "text", "text": "Bullet list item" }] }
-          ]
+          type: "text",
+          text: "This is an example paragraph to help you get started.",
+        },
+      ],
+    },
+    {
+      type: "bulletList",
+      content: [
+        {
+          type: "listItem",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Bullet list item" }],
+            },
+          ],
         },
         {
-          "type": "listItem",
-          "content": [
-            { "type": "paragraph", "content": [{ "type": "text", "text": "Another item" }] }
-          ]
-        }
-      ]
+          type: "listItem",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Another item" }],
+            },
+          ],
+        },
+      ],
     },
     {
-      "type": "blockquote",
-      "content": [
+      type: "blockquote",
+      content: [
         {
-          "type": "paragraph",
-          "content": [
-            { "type": "text", "text": "This is a blockquote. Use it to highlight important ideas or references." }
-          ]
-        }
-      ]
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "This is a blockquote. Use it to highlight important ideas or references.",
+            },
+          ],
+        },
+      ],
     },
     {
-      "type": "paragraph",
-      "content": [
-        { "type": "text", "text": "Happy editing! ✨" }
-      ]
-    }
-  ]
-}
-
+      type: "paragraph",
+      content: [{ type: "text", text: "Happy editing! ✨" }],
+    },
+  ],
+};
+const liveblocks = new Liveblocks({
+  secret: process.env.LIVEBLOCKS_SECRET_KEY as string,
+});
 export async function POST(req: NextRequest) {
   try {
     const unsafeData = await req.json();
@@ -99,36 +116,61 @@ export async function POST(req: NextRequest) {
     }
     const { user } = authData;
     const randomId = crypto.randomUUID();
+    const noteContent =
+      data.content.content.length === 0
+        ? boilerPlateCode
+        : data.content.content;
     await db.transaction(async (tx) => {
       const noteTableData = await db.insert(note_table).values({
         note_title: data.title,
-        note_content: data.content.content.length === 0 ? boilerPlateCode : data.content.content,
+        note_content: noteContent,
         id: randomId,
         user_id: user.id,
       });
-      for(const tag of data.tags){
+      for (const tag of data.tags) {
         await db.insert(note_tags).values({
-            note_id:randomId,
-            tag_name:tag.value,
-        })
+          note_id: randomId,
+          tag_name: tag.value,
+        });
       }
       await db.insert(note_members).values({
-        member_user_id:authData.user.id,
-        note_id:randomId,
-        role:"owner"
-      })
+        member_user_id: authData.user.id,
+        note_id: randomId,
+        role: "owner",
+      });
     });
-    return NextResponse.json({
-      message: "complete",
-      id:randomId
-    },{
-        status:200
+    await liveblocks.createRoom(randomId, {
+      defaultAccesses: ["room:write"],
+      metadata: {
+        noteId: randomId,
+        createdBy: authData.user.id,
+      },
     });
+    const yDoc = new Y.Doc();
+    const fragment = yDoc.getXmlFragment("default");
+
+    prosemirrorJSONToYXmlFragment(tiptapSchema, boilerPlateCode, fragment);
+
+    const update = Y.encodeStateAsUpdate(yDoc);
+
+    await liveblocks.sendYjsBinaryUpdate(randomId, update);
+    return NextResponse.json(
+      {
+        message: "complete",
+        id: randomId,
+      },
+      {
+        status: 200,
+      }
+    );
   } catch (error) {
-    return NextResponse.json({
-      message: "Fail",
-    },{
-      status:500
-    });
+    return NextResponse.json(
+      {
+        message: "Fail",
+      },
+      {
+        status: 500,
+      }
+    );
   }
 }

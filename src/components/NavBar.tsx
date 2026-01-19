@@ -1,3 +1,5 @@
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { Button } from "./ui/button";
@@ -10,7 +12,7 @@ const NavBar = async () => {
     headers: await headers(),
   });
   return (
-    <header className="flex mx-5 pt-4 justify-between items-center flex-row">
+    <header className="flex px-5 py-3 justify-between items-center flex-row border-b ">
 
       <CommandSearch />
       {authData?.user ? (
