@@ -20,16 +20,88 @@ import { useState } from "react";
 import { Delete, Plus, Trash } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-const NewButton = () => {
+const boilerPlateCode = {
+  type: "doc",
+  content: [
+    {
+      type: "heading",
+      attrs: { level: 1 },
+      content: [{ type: "text", text: "Untitled Document" }],
+    },
+    {
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text: "Start writing your content here. You can add headings, lists, quotes, code blocks, and more using the toolbar or keyboard shortcuts.",
+        },
+      ],
+    },
+    {
+      type: "heading",
+      attrs: { level: 2 },
+      content: [{ type: "text", text: "Example Section" }],
+    },
+    {
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text: "This is an example paragraph to help you get started.",
+        },
+      ],
+    },
+    {
+      type: "bulletList",
+      content: [
+        {
+          type: "listItem",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Bullet list item" }],
+            },
+          ],
+        },
+        {
+          type: "listItem",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Another item" }],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: "blockquote",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "This is a blockquote. Use it to highlight important ideas or references.",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: "paragraph",
+      content: [{ type: "text", text: "Happy editing! ✨" }],
+    },
+  ],
+};
+const NewButton = ({content,className,category}:{content?:string,className?:string,category:string}) => {
   const router = useRouter();
   const methods = useForm<z.infer<typeof newNote>>({
     resolver: zodResolver(newNote),
     defaultValues: {
       tags: [],
-      content: {
-        type: "doc",
-        content: [],
-      },
+      content: content ? JSON.parse(content) : boilerPlateCode,
+      category:category
     },
   });
   const {
@@ -83,7 +155,10 @@ const NewButton = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>Create a new Note</Button>
+        <Button className={className} >
+          <Plus className="w-4 h-4" />
+          Use Template
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -132,7 +207,7 @@ const NewButton = () => {
                   >
                     <span>{fields.value}</span>
                     <Button
-                    variant={"destructive"}
+                      variant={"destructive"}
                       disabled={isSubmitting}
                       className="my-3"
                       type="button"
@@ -146,9 +221,11 @@ const NewButton = () => {
                 ))}
               </Field>
               <div className="flex flex-row gap-5">
-                <Button 
-                variant={"outline"}
-                disabled={isSubmitting} type="submit">
+                <Button
+                  variant={"outline"}
+                  disabled={isSubmitting}
+                  type="submit"
+                >
                   Save
                 </Button>
                 <Button

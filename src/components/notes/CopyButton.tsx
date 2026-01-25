@@ -4,7 +4,6 @@ import { useEffect, useState, useTransition } from "react";
 import { Button } from "../ui/button";
 import { notFound, useParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
-import { error } from "console";
 
 const CopyButton = ({ role }: { role: string }) => {
   const { id } = useParams();

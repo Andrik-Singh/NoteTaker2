@@ -7,5 +7,6 @@ export const newNote=z.object({
     content:z.object({
         type:z.string(),
         content:z.array(z.any())
-    })
+    }),
+    category:z.string().optional()
 })

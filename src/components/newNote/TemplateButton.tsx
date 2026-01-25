@@ -38,7 +38,7 @@ export default function TemplateButton({ value }: TemplateButtonProps) {
         transition-colors
         ${
           isActive
-            ? "bg-[#1e293b] text-white shadow-md scale-105 ring-2 ring-offset-2 ring-blue-500/30"
+            ? "bg-[#1e293b] text-white shadow-md scale-105"
             : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
         }
       `}

@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+import NonShareAbleTipTap from "@/components/notes/NonshareableTitap";
 import { Room } from "@/components/notes/Room";
 import TipTap from "@/components/notes/tiptap";
 import { Button } from "@/components/ui/button";
@@ -23,8 +24,6 @@ const page = async ({
 }) => {
   const { id } = await params;
   const res = await getSpecificNotes(id);
-  console.log(res);
-
   if (!res.success || !res.data) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -44,10 +43,15 @@ const page = async ({
       </div>
     );
   }
-
-  const content = JSON.stringify(res.data[0].note_content);
-  return (
-    <Room>
+  const content = res.data[0].note_content !== undefined 
+  ? JSON.stringify(res.data[0].note_content) 
+  : undefined;
+  console.log(content)
+  if(!content){
+    return
+  }
+  if (!res.data[0].shareable) {
+    return (
       <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 ">
         <div className="px-3 md:px-10 py-8 ">
           <div className="mb-6 ">
@@ -68,7 +72,9 @@ const page = async ({
                 <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-gray-100 leading-tight">
                   {res.data[0].note_title}
                 </h1>
-
+                <h2>
+                  {res.data[0].note_category }
+                </h2>
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {new Date(res.data[0].created_at).toLocaleDateString(
                     "en-US",
@@ -76,18 +82,61 @@ const page = async ({
                       year: "numeric",
                       month: "short",
                       day: "numeric",
-                    }
+                    },
                   )}
                 </p>
               </div>
             </div>
           </header>
 
-          <TipTap updatedAt={res.data[0].updated_at} content={content} />
+          <NonShareAbleTipTap category={res.data[0].note_category} updatedAt={res.data[0].updated_at} content={content}/>
         </div>
       </div>
-    </Room>
-  );
+    );
+  } else {
+    return (
+      <Room>
+        <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 ">
+          <div className="px-3 md:px-10 py-8 ">
+            <div className="mb-6 ">
+              <Button
+                variant="ghost"
+                className="gap-2 hover:gap-3 transition-all"
+                asChild
+              >
+                <Link href="/home">
+                  <ArrowLeft size={18} />
+                  <span>Go Back</span>
+                </Link>
+              </Button>
+            </div>
+            <header className="mb-8 px-3 md:px-10 max-w-3xl">
+              <div className="flex items-start gap-3">
+                <div className="flex-1">
+                  <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-gray-100 leading-tight">
+                    {res.data[0].note_title}
+                  </h1>
+
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {new Date(res.data[0].created_at).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      },
+                    )}
+                  </p>
+                </div>
+              </div>
+            </header>
+
+            <TipTap updatedAt={res.data[0].updated_at} content={content} />
+          </div>
+        </div>
+      </Room>
+    );
+  }
 };
 
 export default page;

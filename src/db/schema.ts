@@ -113,6 +113,8 @@ export const note_table = pgTable("notes", {
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
+    note_category: text("note_category").notNull(),
+    shareable: boolean("shareable").default(false).notNull(),
 },(t)=>({
   note_id_idx:index("note_id_idx").on(t.id),
   note_user_id:index("note_user_id").on(t.user_id),

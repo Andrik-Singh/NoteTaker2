@@ -1,34 +1,33 @@
 "use client";
-import {
-  useLiveblocksExtension,
-  FloatingToolbar,
-} from "@liveblocks/react-tiptap";
-import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
-import { Editor, useEditor } from "@tiptap/react";
+import React, {
+  useEffect,
+  useState,
+  useTransition,
+  useRef,
+  useCallback,
+} from "react";
+import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-
-import { HorizontalRule } from "../tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
-
 import TextAlign from "@tiptap/extension-text-align";
-import { TaskItem, TaskList } from "@tiptap/extension-list";
 import Typography from "@tiptap/extension-typography";
 import Superscript from "@tiptap/extension-superscript";
 import Subscript from "@tiptap/extension-subscript";
-
 import Highlight from "@tiptap/extension-highlight";
 import Image from "@tiptap/extension-image";
-
-import { ImageUploadNode } from "../tiptap-node/image-upload-node";
-import { MAX_FILE_SIZE } from "@/lib/tiptap-utils";
 import { toast } from "sonner";
-import { useEffect, useState, useTransition, useRef, useCallback } from "react";
+import { Save, Trash2, Clock } from "lucide-react";
+import { SimpleEditor } from "../tiptap-templates/simple/simple-editor";
+import { Placeholder } from "@tiptap/extensions";
+import { TaskItem, TaskList } from "@tiptap/extension-list";
+import { ImageUploadNode } from "../tiptap-node/image-upload-node";
+import { HorizontalRule } from "../tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
 import { Button } from "../ui/button";
-import { useParams, useRouter } from "next/navigation";
-import DeleteButton from "./DeleteButton";
 import CopyButton from "./CopyButton";
-import { useRoom, useStatus, useStorage } from "@liveblocks/react/suspense";
 import ImportDropdown from "./ImportDropdown";
-import DeleteRoom from "./DeleteRoom";
+import { MAX_FILE_SIZE } from "@/lib/tiptap-utils";
+import { useParams } from "next/navigation";
+import DeleteButton from "./DeleteButton";
+import CreateRoom from "./CreateRoom";
 
 const getLastUpdatedTime = (diffTime: number): string => {
   const days = Math.floor(diffTime / (24 * 60 * 60 * 1000));
@@ -42,28 +41,22 @@ const getLastUpdatedTime = (diffTime: number): string => {
   return `${seconds}s ago`;
 };
 
-export default function TipTap({
-  content = "",
-  updatedAt,
-}: {
+interface TipTapProps {
   content?: string;
   updatedAt: Date | null;
-}) {
+  category:string
+}
+
+const NonShareAbleTipTap: React.FC<TipTapProps> = ({ content, updatedAt,category }) => {
   const now = new Date();
   const diffTime = Math.abs(Number(now) - Number(updatedAt));
   const [lastUpdatedAt, setLastUpdatedAt] = useState(
-    getLastUpdatedTime(diffTime),
+    getLastUpdatedTime(diffTime)
   );
-  const id = useParams().id as string;
-  const router = useRouter()
-  const liveblocks = useLiveblocksExtension();
-  const room = useRoom();
-  const status = useStatus();
-  const [newImages, setNewImages] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [newImages, setNewImages] = useState<string[]>([]);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const hasLoadedFromDB = useRef(false);
+  const id = useParams().id as string;
 
   const handleImageUpload = async (file: File) => {
     try {
@@ -82,6 +75,14 @@ export default function TipTap({
   };
 
   const editor = useEditor({
+    content: (() => {
+    try {
+      return content ? JSON.parse(content) : undefined;
+    } catch (error) {
+      console.error("Failed to parse content:", error);
+      return undefined;
+    }
+  })(),
     immediatelyRender: false,
     editorProps: {
       attributes: {
@@ -93,10 +94,8 @@ export default function TipTap({
       },
     },
     extensions: [
-      liveblocks,
       StarterKit.configure({
         horizontalRule: false,
-        undoRedo: false,
       }),
       HorizontalRule,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
@@ -118,58 +117,8 @@ export default function TipTap({
       }),
     ],
   });
-  useEffect(() => {
-    if (!editor || !room || hasLoadedFromDB.current) return;
 
-    const initContent = async () => {
-      if (status != "connected") {
-        console.log("Liveblocks is not ready");
-        return;
-      }
-      const htmlContent = editor.getHTML();
-      const jsonContent = editor.getJSON();
-      const hasLiveblocksContent = (() => {
-        if (!jsonContent.content || jsonContent.content.length === 0) {
-          return false;
-        }
-        for (const node of jsonContent.content) {
-          if (node.type !== "paragraph") {
-            return true;
-          }
-          if (node.content && node.content.length > 0) {
-            return true;
-          }
-          if (node.attrs && Object.keys(node.attrs).length > 0) {
-            return true;
-          }
-        }
 
-        return false;
-      })();
-      if (!hasLiveblocksContent && content) {
-        try {
-          const parsedContent = JSON.parse(content);
-          editor.commands.clearContent();
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          editor.commands.setContent(parsedContent, {
-            emitUpdate: false,
-          });
-          hasLoadedFromDB.current = true;
-        } catch (error) {
-          console.error("Failed to parse content:", error);
-        }
-      } else if (hasLiveblocksContent) {
-        hasLoadedFromDB.current = true;
-      } else {
-        console.log("No content available");
-        hasLoadedFromDB.current = true;
-      }
-
-      setIsInitialized(true);
-    };
-
-    initContent();
-  }, [editor, room, content, status]);
   const handleSave = useCallback(async () => {
     try {
       if (!editor) return;
@@ -187,30 +136,35 @@ export default function TipTap({
       });
       setLastUpdatedAt(getLastUpdatedTime(0));
     } catch (error) {
-      console.error("Auto-save failed:", error);
+      console.error(" Auto-save failed:", error);
     }
   }, [id, editor]);
+
   useEffect(() => {
     window.addEventListener("beforeunload", handleSave);
     return () => {
       window.removeEventListener("beforeunload", handleSave);
     };
   }, [handleSave]);
+
   useEffect(() => {
     if (!editor) return;
+    
     const onupdate = () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = setTimeout(() => {
         handleSave();
       }, 8000);
     };
+    
     editor.on("update", onupdate);
     return () => {
       editor.off("update", onupdate);
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
-  }, [editor, id]);
-  if (!editor || !isInitialized) {
+  }, [editor, handleSave]);
+
+  if (!editor) {
     return (
       <div className="flex items-center justify-center h-[500px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -218,23 +172,12 @@ export default function TipTap({
       </div>
     );
   }
-
-  if (!room) {
-    return (
-      <div className="flex items-center justify-center h-[500px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-        <span className="ml-3 text-gray-500">Initializing room...</span>
-      </div>
-    );
-  }
-
   return (
     <>
       <section className="flex md:flex-row gap-3 flex-col mt-10 mb-5 px-3 md:px-10 items-center justify-between w-full">
         <section className="flex gap-2 items-center">
           <ImportDropdown editor={editor} />
-          <DeleteRoom id={id} />
-          <CopyButton role="writer" />
+          {category != "Personal" && <CreateRoom id={id} content={content ?? ""} />}
         </section>
         <div className="flex flex-wrap gap-5 items-center justify-end">
           <p className="italic md:block hidden">Updated at: {lastUpdatedAt}</p>
@@ -243,24 +186,15 @@ export default function TipTap({
             onClick={() => {
               startTransition(async () => {
                 const content = editor.getJSON();
-                const res = await fetch(`/api/notes/${id}`, {
+                await fetch(`/api/notes/${id}`, {
                   method: "PATCH",
                   headers: {
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify(content),
                 });
-
-                if (!res.ok) {
-                  if (res.status === 401) {
-                    router.push("/sign-in");
-                  } else {
-                    toast.error("Unable to save file at moment");
-                  }
-                } else {
-                  setLastUpdatedAt(getLastUpdatedTime(0));
-                  toast.success("Successfully saved note");
-                }
+                setLastUpdatedAt(getLastUpdatedTime(0));
+                toast.success("Successfully saved note");
               });
             }}
           >
@@ -272,4 +206,6 @@ export default function TipTap({
       <SimpleEditor editor={editor} />
     </>
   );
-}
+};
+
+export default NonShareAbleTipTap;

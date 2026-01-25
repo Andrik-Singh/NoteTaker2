@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { getRoles } from "@/server/getRoles";
 import { Liveblocks } from "@liveblocks/node";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -19,7 +20,6 @@ export async function PATCH(
 ) {
   try {
     const body = await req.json();
-
     const authData = await auth.api.getSession({
       headers:await headers(),
     });
@@ -92,7 +92,7 @@ export async function DELETE(
 
     await db.delete(note_table).where(eq(note_table.id, id));
     await liveblocks.deleteRoom(id);
-
+    revalidatePath("/home")
     return NextResponse.json({ message: "Success" }, { status: 200 });
   } catch (error) {
     console.error(error);

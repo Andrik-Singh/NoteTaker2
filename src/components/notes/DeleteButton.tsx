@@ -24,6 +24,7 @@ const DeleteButton = ({ id }: { id: string }) => {
     startTransition(async () => {
         const res=await fetch(`/api/notes/${id}`,{
             method:"DELETE",
+            cache:"no-store"
         })
         setOpen(false)
     })

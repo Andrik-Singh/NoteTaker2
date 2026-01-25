@@ -84,9 +84,6 @@ const boilerPlateCode = {
     },
   ],
 };
-const liveblocks = new Liveblocks({
-  secret: process.env.LIVEBLOCKS_SECRET_KEY as string,
-});
 export async function POST(req: NextRequest) {
   try {
     const unsafeData = await req.json();
@@ -116,16 +113,18 @@ export async function POST(req: NextRequest) {
     }
     const { user } = authData;
     const randomId = crypto.randomUUID();
+    console.log(data.content)
     const noteContent =
       data.content.content.length === 0
         ? boilerPlateCode
-        : data.content.content;
+        : data.content;
     await db.transaction(async (tx) => {
       const noteTableData = await db.insert(note_table).values({
         note_title: data.title,
         note_content: noteContent,
         id: randomId,
         user_id: user.id,
+        note_category:data.category ?? "General",
       });
       for (const tag of data.tags) {
         await db.insert(note_tags).values({
@@ -139,21 +138,7 @@ export async function POST(req: NextRequest) {
         role: "owner",
       });
     });
-    await liveblocks.createRoom(randomId, {
-      defaultAccesses: ["room:write"],
-      metadata: {
-        noteId: randomId,
-        createdBy: authData.user.id,
-      },
-    });
-    const yDoc = new Y.Doc();
-    const fragment = yDoc.getXmlFragment("default");
-
-    prosemirrorJSONToYXmlFragment(tiptapSchema, boilerPlateCode, fragment);
-
-    const update = Y.encodeStateAsUpdate(yDoc);
-
-    await liveblocks.sendYjsBinaryUpdate(randomId, update);
+   
     return NextResponse.json(
       {
         message: "complete",
