@@ -15,20 +15,22 @@ import { Input } from "./ui/input";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getUserNotes, Note } from "@/server/getNotes";
 import Fuse from "fuse.js";
+import { getSharedNotes } from "@/server/getSharedNotes";
 
 export default function CommandSearch() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const currentPath = usePathname().split("/")[1];
   const [search, setSearch] = useState("");
-  const allNotes = useRef<Note[] | null>(null);
+  const yourNotes = useRef<Note[] | null>(null);
+  const yourTotalSharedNotes = useRef<Note[] | null>(null);
   const [filteredNotes, setFilteredNotes] = useState<Note[]>([]);
+  const [sharedNotes, setSharedNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const navList = [
-    { name: "Notes", link: "/home", icon: Home },
+    { name: "All Notes", link: "/home", icon: Home },
     { name: "New Note", link: "/new-note", icon: Notebook },
-    { name: "Shared With Me", link: "/shared", icon: Share },
     { name: "Settings", link: "/settings", icon: Settings },
   ];
   const currentPlaceholder = useMemo(() => {
@@ -49,10 +51,14 @@ export default function CommandSearch() {
   useEffect(() => {
     const fetchNotes = async () => {
       try {
-        const res = await getUserNotes();
-        if (res.data) {
-          allNotes.current = res.data;
-          setFilteredNotes(res.data.slice(0, 10));
+        const [yourNotesRes,sharedNotesRes] = await Promise.all([getUserNotes(),getSharedNotes()]);
+        if (yourNotesRes.data) {
+          yourNotes.current = yourNotesRes.data;
+          setFilteredNotes(yourNotesRes.data.slice(0, 10));
+        }
+        if (sharedNotesRes.data) {
+          yourTotalSharedNotes.current = sharedNotesRes.data;
+          setSharedNotes(sharedNotesRes.data.slice(0, 10));
         }
       } catch (error) {
         console.error("Failed to fetch notes:", error);
@@ -61,21 +67,28 @@ export default function CommandSearch() {
       }
     };
     fetchNotes();
+    const interval=setInterval(fetchNotes,30000)
+    return()=>clearInterval(interval)
   }, []);
   useEffect(() => {
     if (!search.trim()) {
-      setFilteredNotes(allNotes.current?.slice(0, 10) || []);
+      setFilteredNotes(yourNotes.current?.slice(0, 10) || []);
       return;
     }
-    const timer = setTimeout(() => {
-      if(!allNotes.current) return
-      const fuse = new Fuse(allNotes.current, {
-        keys: ["note_title", "noteTitle"], 
-        threshold: 0.5, 
+    const fuseSearch = (currentNotes: Note[], keys: string[]) => {
+      if (!currentNotes) return;
+        const fuse = new Fuse(currentNotes, {
+        keys:keys,
+        threshold: 0.5,
         includeScore: true,
       });
-      const results = fuse.search(search);
-      console.log(results);
+      return fuse.search(search)
+    };
+    const timer = setTimeout(() => {
+      const yourNotesResults = fuseSearch(yourNotes.current || [], ["noteTitle", "note_content"]) || [];
+      const sharedNotesResults = fuseSearch(yourTotalSharedNotes.current || [], ["noteTitle", "note_content"]) || [];
+      setFilteredNotes(yourNotesResults.map((r) => r.item).slice(0, 10));
+      setSharedNotes(sharedNotesResults.map((r) => r.item).slice(0, 10));
     }, 300);
     return () => clearTimeout(timer);
   }, [search]);
@@ -84,7 +97,6 @@ export default function CommandSearch() {
       setSearch("");
     }
   }, [open]);
-
   return (
     <>
       <div
@@ -132,6 +144,26 @@ export default function CommandSearch() {
             <>
               <CommandGroup heading="Notes">
                 {filteredNotes.map((note) => (
+                  <CommandItem
+                    key={note.id}
+                    onSelect={() => {
+                      router.push(`/new-note/${note.id}`);
+                      setOpen(false);
+                    }}
+                  >
+                    <span className="truncate">
+                      {note.noteTitle || "Untitled"}
+                    </span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </>
+          )}
+          <CommandSeparator />
+          {sharedNotes.length > 0 && (
+            <>
+              <CommandGroup heading="Shared Notes">
+                {sharedNotes.map((note) => (
                   <CommandItem
                     key={note.id}
                     onSelect={() => {

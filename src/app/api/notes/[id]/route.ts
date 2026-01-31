@@ -32,8 +32,14 @@ export async function PATCH(
     }
 
     const { id } =await context.params;
-    const { role } = await getRoles(id);
-
+    const { role ,error} = await getRoles(id);
+    if(error){
+      console.error("error")
+      return NextResponse.json(
+        { message: role },
+        { status: 404 }
+      );
+    }
     if (role === "reader") {
       return NextResponse.json(
         { message: "Unauthorized user" },

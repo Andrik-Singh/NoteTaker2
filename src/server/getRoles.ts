@@ -3,6 +3,7 @@
 import { db } from "@/db"
 import { note_members } from "@/db/schema"
 import { auth } from "@/lib/auth"
+import { error } from "console"
 import { and, eq } from "drizzle-orm"
 import { headers } from "next/headers"
 
@@ -13,7 +14,8 @@ export async function getRoles(noteId:string) {
         })
         if(!authData){
             return{
-                role:"Unauthorized user"
+                role:"Unauthorized user",
+                error:true
             }
         }
         const role=await db.select({
@@ -24,13 +26,21 @@ export async function getRoles(noteId:string) {
                 eq(note_members.member_user_id,authData.user.id)
             )
         )
+        if(role.length===0){
+            return{
+                role:"Unauthorized user",
+                error:true
+            }
+        }
         return{
-            role:role[0].role
+            role:role[0].role,
+            error:false
         }
     } catch (error) {
         console.error(error)
         return{
-            role:"Internal server error"
+            role:"Internal server error",
+            error:false
         }
     }
 }

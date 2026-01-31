@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getSpecificNotes } from "@/server/getNotes";
-import { ArrowLeft, CircleX, FileText } from "lucide-react";
+import { ArrowLeft, CircleX, ClipboardSignature, FileText } from "lucide-react";
 import Link from "next/link";
 
 const page = async ({
@@ -46,11 +46,12 @@ const page = async ({
   const content = res.data[0].note_content !== undefined 
   ? JSON.stringify(res.data[0].note_content) 
   : undefined;
-  console.log(content)
   if(!content){
     return
   }
+  console.log(res.data)
   if (!res.data[0].shareable) {
+    console.log("noshareable")
     return (
       <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 ">
         <div className="px-3 md:px-10 py-8 ">

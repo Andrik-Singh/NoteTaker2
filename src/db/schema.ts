@@ -179,56 +179,48 @@ export const tokenRelations = relations(tokens, ({ one }) => ({
   user: one(user, {
     fields: [tokens.created_by],
     references: [user.id],
-    relationName: "user_tokens", // Same as above
+    relationName: "user_tokens", 
   }),
 }));
-
-// Note table relations
 export const noteTableRelations = relations(note_table, ({ one, many }) => ({
   user: one(user, {
     fields: [note_table.user_id],
     references: [user.id],
-    relationName: "user_notes", // Same as above
+    relationName: "user_notes",
   }),
-  tags: many(note_tags, { relationName: "note_tags_relation" }), // Added relation name
-  members: many(note_members, { relationName: "note_members_relation" }), // Added relation name
-  versions: many(note_versions, { relationName: "note_versions_relation" }), // Added relation name
+  tags: many(note_tags, { relationName: "note_tags_relation" }), 
+  members: many(note_members, { relationName: "note_members_relation" }), 
+  versions: many(note_versions, { relationName: "note_versions_relation" }), 
 }));
-
-// Note tags relations
 export const noteTagsRelations = relations(note_tags, ({ one }) => ({
   note: one(note_table, {
     fields: [note_tags.note_id],
     references: [note_table.id],
-    relationName: "note_tags_relation", // Same as above
+    relationName: "note_tags_relation", 
   }),
 }));
-
-// Note members relations
 export const noteMembersRelations = relations(note_members, ({ one }) => ({
   note: one(note_table, {
     fields: [note_members.note_id],
     references: [note_table.id],
-    relationName: "note_members_relation", // Same as above
+    relationName: "note_members_relation",
   }),
   user: one(user, {
     fields: [note_members.member_user_id],
     references: [user.id],
-    relationName: "user_note_memberships", // Same as above
+    relationName: "user_note_memberships",
   }),
 }));
-
-// Note versions relations
 export const noteVersionsRelations = relations(note_versions, ({ one }) => ({
   note: one(note_table, {
     fields: [note_versions.note_id],
     references: [note_table.id],
-    relationName: "note_versions_relation", // Same as above
+    relationName: "note_versions_relation", 
   }),
   user: one(user, {
     fields: [note_versions.changed_by],
     references: [user.id],
-    relationName: "user_note_versions", // Same as above
+    relationName: "user_note_versions", 
   }),
 }));
 export const allRelations = [

@@ -2,14 +2,8 @@ import { db } from "@/db";
 import { note_members, note_table, note_tags } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { newNote } from "@/zod/newNote";
-import { Liveblocks } from "@liveblocks/node";
-import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import * as Y from "yjs";
-import { getSchema } from "@tiptap/core";
-import StarterKit from "@tiptap/starter-kit";
-export const tiptapSchema=getSchema([StarterKit])
 const boilerPlateCode = {
   type: "doc",
   content: [

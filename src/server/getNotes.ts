@@ -5,7 +5,6 @@ import {
   note_members,
   note_table,
   note_tags,
-  note_versions,
 } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { error } from "console";

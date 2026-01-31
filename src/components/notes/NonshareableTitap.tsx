@@ -44,16 +44,20 @@ const getLastUpdatedTime = (diffTime: number): string => {
 interface TipTapProps {
   content?: string;
   updatedAt: Date | null;
-  category:string
+  category: string;
 }
 
-const NonShareAbleTipTap: React.FC<TipTapProps> = ({ content, updatedAt,category }) => {
+const NonShareAbleTipTap: React.FC<TipTapProps> = ({
+  content,
+  updatedAt,
+  category,
+}) => {
   const now = new Date();
   const diffTime = Math.abs(Number(now) - Number(updatedAt));
   const [lastUpdatedAt, setLastUpdatedAt] = useState(
-    getLastUpdatedTime(diffTime)
+    getLastUpdatedTime(diffTime),
   );
-  const [isPending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false)
   const [newImages, setNewImages] = useState<string[]>([]);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const id = useParams().id as string;
@@ -76,13 +80,13 @@ const NonShareAbleTipTap: React.FC<TipTapProps> = ({ content, updatedAt,category
 
   const editor = useEditor({
     content: (() => {
-    try {
-      return content ? JSON.parse(content) : undefined;
-    } catch (error) {
-      console.error("Failed to parse content:", error);
-      return undefined;
-    }
-  })(),
+      try {
+        return content ? JSON.parse(content) : undefined;
+      } catch (error) {
+        console.error("Failed to parse content:", error);
+        return undefined;
+      }
+    })(),
     immediatelyRender: false,
     editorProps: {
       attributes: {
@@ -118,51 +122,62 @@ const NonShareAbleTipTap: React.FC<TipTapProps> = ({ content, updatedAt,category
     ],
   });
 
-
   const handleSave = useCallback(async () => {
     try {
+      setPending(true)
       if (!editor) return;
-      console.log("Auto Saving");
-      await fetch(`/api/notes/${id}`, {
+      const res = await fetch(`/api/notes/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
+        keepalive: true,
         body: JSON.stringify(editor.getJSON()),
       });
-      toast.success("Note saved successfully", {
-        description: "Your changes are now secure.",
-        duration: 2000,
-      });
-      setLastUpdatedAt(getLastUpdatedTime(0));
+      if (res.ok) {
+        toast.success("Note saved successfully", {
+          description: "Your changes are now secure.",
+          duration: 2000,
+        });
+      } else {
+        toast.error("Failed to save note");
+      }
+      setPending(false)
     } catch (error) {
       console.error(" Auto-save failed:", error);
+      setPending(false)
     }
   }, [id, editor]);
 
   useEffect(() => {
-    window.addEventListener("beforeunload", handleSave);
+    window.addEventListener("beforeunload", () => {
+      console.log("beforeunload");
+      handleSave();
+    });
     return () => {
-      window.removeEventListener("beforeunload", handleSave);
+      window.removeEventListener("beforeunload", () => {
+        console.log("remove beforeunload");
+        handleSave();
+      });
     };
   }, [handleSave]);
 
   useEffect(() => {
     if (!editor) return;
-    
+
     const onupdate = () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = setTimeout(() => {
         handleSave();
       }, 8000);
     };
-    
+
     editor.on("update", onupdate);
     return () => {
       editor.off("update", onupdate);
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
-  }, [editor, handleSave]);
+  }, [editor, id]);
 
   if (!editor) {
     return (
@@ -177,26 +192,15 @@ const NonShareAbleTipTap: React.FC<TipTapProps> = ({ content, updatedAt,category
       <section className="flex md:flex-row gap-3 flex-col mt-10 mb-5 px-3 md:px-10 items-center justify-between w-full">
         <section className="flex gap-2 items-center">
           <ImportDropdown editor={editor} />
-          {category != "Personal" && <CreateRoom id={id} content={content ?? ""} />}
+          {category != "Personal" && (
+            <CreateRoom id={id} content={content ?? ""} />
+          )}
         </section>
         <div className="flex flex-wrap gap-5 items-center justify-end">
           <p className="italic md:block hidden">Updated at: {lastUpdatedAt}</p>
           <Button
-            disabled={isPending}
-            onClick={() => {
-              startTransition(async () => {
-                const content = editor.getJSON();
-                await fetch(`/api/notes/${id}`, {
-                  method: "PATCH",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify(content),
-                });
-                setLastUpdatedAt(getLastUpdatedTime(0));
-                toast.success("Successfully saved note");
-              });
-            }}
+            disabled={pending}
+            onClick={handleSave}
           >
             Save
           </Button>

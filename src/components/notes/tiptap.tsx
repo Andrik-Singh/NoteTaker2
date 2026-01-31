@@ -55,12 +55,12 @@ export default function TipTap({
     getLastUpdatedTime(diffTime),
   );
   const id = useParams().id as string;
-  const router = useRouter()
+  const router = useRouter();
   const liveblocks = useLiveblocksExtension();
   const room = useRoom();
   const status = useStatus();
   const [newImages, setNewImages] = useState<string[]>([]);
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasLoadedFromDB = useRef(false);
@@ -172,21 +172,29 @@ export default function TipTap({
   }, [editor, room, content, status]);
   const handleSave = useCallback(async () => {
     try {
+      setIsPending(true);
       if (!editor) return;
-      console.log("Auto Saving");
-      await fetch(`/api/notes/${id}`, {
+      const res = await fetch(`/api/notes/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(editor.getJSON()),
       });
-      toast.success("Note saved successfully", {
-        description: "Your changes are now secure.",
-        duration: 2000,
-      });
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push("/sign-in");
+        } else {
+          router.refresh()
+        }
+      } else {
+        setLastUpdatedAt(getLastUpdatedTime(0));
+        toast.success("Successfully saved note");
+      }
       setLastUpdatedAt(getLastUpdatedTime(0));
+      setIsPending(false);
     } catch (error) {
+      setIsPending(false);
       console.error("Auto-save failed:", error);
     }
   }, [id, editor]);
@@ -238,32 +246,7 @@ export default function TipTap({
         </section>
         <div className="flex flex-wrap gap-5 items-center justify-end">
           <p className="italic md:block hidden">Updated at: {lastUpdatedAt}</p>
-          <Button
-            disabled={isPending}
-            onClick={() => {
-              startTransition(async () => {
-                const content = editor.getJSON();
-                const res = await fetch(`/api/notes/${id}`, {
-                  method: "PATCH",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify(content),
-                });
-
-                if (!res.ok) {
-                  if (res.status === 401) {
-                    router.push("/sign-in");
-                  } else {
-                    toast.error("Unable to save file at moment");
-                  }
-                } else {
-                  setLastUpdatedAt(getLastUpdatedTime(0));
-                  toast.success("Successfully saved note");
-                }
-              });
-            }}
-          >
+          <Button disabled={isPending} onClick={handleSave}>
             Save
           </Button>
           <DeleteButton id={id} />

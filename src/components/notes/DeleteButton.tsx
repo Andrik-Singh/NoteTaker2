@@ -13,26 +13,34 @@ import {
 import { Button } from "../ui/button"
 import { Trash } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 const DeleteButton = ({ id }: { id: string }) => {
   const [isPending, startTransition] = useTransition()
   const [open, setOpen] = useState(false)
   const router=useRouter()
-  const pathname=usePathname()
   
   const handleDelete = () => {
     startTransition(async () => {
-        const res=await fetch(`/api/notes/${id}`,{
-            method:"DELETE",
-            cache:"no-store"
+         try {
+        const res = await fetch(`/api/notes/${id}`, {
+          method: "DELETE",
+          cache: "no-store",
         })
-        setOpen(false)
+
+        if (res.ok) {
+          setOpen(false)
+          router.replace("/home",{scroll:false})
+          router.refresh()
+          toast.success("Note deleted successfully.") 
+        } else {
+          toast.error("Failed to delete the note.")
+        }
+      } catch (err) {
+        console.error("Delete operation failed:", err)
+      }
     })
-    if(pathname.startsWith("/home")){
-      router.refresh()
-    }else{
-      router.push("/home")
-    }
+    
   }
 
   return (
