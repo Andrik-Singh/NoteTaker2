@@ -1,4 +1,5 @@
 "use client";
+import { settingsSchema } from "@/zod/settings";
 import ThemeToggle from "../ThemeChanger";
 import {
   Select,
@@ -7,13 +8,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { useEffect, useState } from "react";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { editorKey, useLocalStorage } from "@/hooks/useLocalStorage";
+import { defaultSettings } from "@/lib/utils";
 
 const AppearanceSection = () => {
-  const [value, setValue] = useLocalStorage("editorSettings");
-
-  console.log(value);
+  const [value, setValue] = useLocalStorage(editorKey,defaultSettings,settingsSchema);
   return (
     <section className="mt-10 space-y-5">
       <h3 className="text-md font-semibold uppercase tracking-wider dark:opacity-40 opacity-100 ">
@@ -29,22 +28,45 @@ const AppearanceSection = () => {
           <p className="text-sm dark:opacity-60 opacity-100">Text size</p>
 
           <Select
-            onValueChange={() => {
+            onValueChange={(val)=>{
               setValue({
-                dsad: "Dsad",
-              });
-              console.log(value)
+                ...value,
+                textSize: val === "sm" ? "sm" : val === "md" ? "md" : "lg"
+              })
             }}
-            defaultValue="md"
+            defaultValue={value.textSize === "sm" ? "sm" : value.textSize === "md" ? "md" : "lg"}
           >
             <SelectTrigger className="w-[140px] text-sm">
-              <SelectValue placeholder="Default" />
+              <SelectValue  />
             </SelectTrigger>
 
             <SelectContent>
               <SelectItem value="sm">Small</SelectItem>
               <SelectItem value="md">Default</SelectItem>
               <SelectItem value="lg">Large</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-sm dark:opacity-60 opacity-100">Line Width</p>
+
+          <Select
+            onValueChange={(val)=>{
+              setValue({
+                ...value,
+                lineWidth:val === "narrow" ? "narrow" : val === "normal" ? "normal" : "wide"
+              })
+            }}
+            defaultValue={value.lineWidth === "narrow" ? "narrow" : value.lineWidth === "normal" ? "normal" : "wide"}
+          >
+            <SelectTrigger className="w-[140px] text-sm">
+              <SelectValue  />
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectItem value="narrow">Narrow</SelectItem>
+              <SelectItem value="normal">Normal</SelectItem>
+              <SelectItem value="wide">Wide</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { createRoom } from "@/server/createRoom";
 import { toast } from "sonner";
@@ -9,15 +9,85 @@ import * as Y from "yjs";
 import { prosemirrorJSONToYXmlFragment } from "y-prosemirror";
 import StarterKit from "@tiptap/starter-kit";
 import { getSchema } from "@tiptap/core";
+import { HorizontalRule } from "../tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
 
-export const tiptapSchema = getSchema([StarterKit]);
+import TextAlign from "@tiptap/extension-text-align";
+import { TaskItem, TaskList } from "@tiptap/extension-list";
+import Typography from "@tiptap/extension-typography";
+import Superscript from "@tiptap/extension-superscript";
+import Subscript from "@tiptap/extension-subscript";
 
+import Highlight from "@tiptap/extension-highlight";
+import Image from "@tiptap/extension-image";
+import { ImageUploadNode } from "../tiptap-node/image-upload-node";
+import { authClient } from "@/lib/auth-client";
+
+export const tiptapSchema = getSchema([
+  StarterKit.configure({
+    horizontalRule: false,
+    undoRedo: false,
+  }),
+  HorizontalRule,
+  TextAlign.configure({ types: ["heading", "paragraph"] }),
+  TaskList,
+  TaskItem.configure({ nested: true }),
+  Highlight.configure({ multicolor: true }),
+  Typography,
+  Superscript,
+  Subscript,
+  Image,
+  ImageUploadNode,
+]);
+type authDataType = {
+  user: {
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    email: string;
+    emailVerified: boolean;
+    name: string;
+    image?: string | null | undefined;
+  };
+  session: {
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    userId: string;
+    expiresAt: Date;
+    token: string;
+    ipAddress?: string | null | undefined;
+    userAgent?: string | null | undefined;
+  };
+} | null;
 const CreateRoom = ({ id, content }: { id: string; content: string }) => {
+  const [data, setData] = useState<null | authDataType>(null);
   const [creating, setCreating] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const session = await authClient.getSession();
+      if(session.error){
+        console.error(session.error)
+        setData(null)
+        return
+      }
+      setData(session.data)
+    };
+    fetchData();
+  }, []);
+  if (!data) return <h1>Loading</h1>;
   const handleCreateRoom = async () => {
     try {
+      if(!data.user){
+        toast.error("Unauthorized user");
+        router.push("/sign-in")
+        return
+      }
+      if(!data.user.emailVerified){
+        toast.error("Please verify your email to create a room");
+        return
+      }
       setCreating(true);
       const boilerPlate = JSON.parse(content);
       const yDoc = new Y.Doc();
@@ -37,13 +107,12 @@ const CreateRoom = ({ id, content }: { id: string; content: string }) => {
       toast.error(
         error instanceof SyntaxError
           ? "Invalid content format"
-          : "Unable to create the room"
+          : "Unable to create the room",
       );
     } finally {
       setCreating(false);
     }
   };
-
   return (
     <Button
       size="sm"

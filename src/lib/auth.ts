@@ -18,6 +18,15 @@ export const auth=betterAuth({
             )
         }
     },
+    emailVerification:{
+        sendVerificationEmail:async({ user, url, token }, request)=>{
+            sendMail(
+                user.email,
+                "Verify your email address",
+                `Click the link to verify your email: ${url}`
+            )
+        }
+    },
     socialProviders:{
         github:{
             clientId:process.env.GITHUB_CLIENT_ID!,

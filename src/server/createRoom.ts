@@ -14,9 +14,9 @@ export async function createRoom(noteId: string,update: Uint8Array) {
     const authData = await auth.api.getSession({
       headers: await headers(),
     });
-    if (!authData) {
+    if (!authData || !authData?.user?.emailVerified) {
       return {
-        error: "Unauthorized user",
+        error: "User doesn't have email verified to create room",
       };
     }
     const id = authData.user.id;
@@ -27,7 +27,6 @@ export async function createRoom(noteId: string,update: Uint8Array) {
       roomExists=false
     }
     if (roomExists) {
-      console.log("room created");
       await db
         .update(note_table)
         .set({

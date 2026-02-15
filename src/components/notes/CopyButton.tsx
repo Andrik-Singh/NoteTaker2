@@ -57,9 +57,9 @@ const CopyButton = ({ role }: { role: string }) => {
           setLoading(false)
         }
       }}
-      variant={"outline"}
+      variant={"ghost"}
     >
-      Collab with other users
+      Share
     </Button>
   );
 };

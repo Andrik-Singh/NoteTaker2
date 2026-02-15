@@ -1,5 +1,6 @@
 import AccountSection from '@/components/settings/AccountSection'
 import AppearanceSection from '@/components/settings/AppearanceSection'
+import EditorSettings from '@/components/settings/EditorSettings'
 import { Separator } from '@/components/ui/separator'
 
 const SettingPage = () => {
@@ -14,6 +15,7 @@ const SettingPage = () => {
         <Separator className='my-3'/>
         <AppearanceSection/>
         <Separator className='my-3'/>
+        <EditorSettings/>
       </div>
     </div>
   )

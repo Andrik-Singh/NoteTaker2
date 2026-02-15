@@ -46,8 +46,10 @@ import { ThemeToggle } from "@/components/tiptap-templates/simple/theme-toggle";
 
 // --- Styles ---
 import "@/components/tiptap-templates/simple/simple-editor.scss";
-import { RotateCcw, RotateCw, Undo } from "lucide-react";
-import { Badge } from "@/components/tiptap-ui-primitive/badge";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { defaultSettings, key } from "@/lib/utils";
+import { settingsSchema } from "@/zod/settings";
+import { cn } from "@/lib/tiptap-utils";
 
 const MainToolbarContent = ({
   onHighlighterClick,
@@ -61,7 +63,7 @@ const MainToolbarContent = ({
   editor: Editor;
 }) => {
   return (
-    <section className="flex items-center justify-center w-screen flex-wrap ">
+    <section className="flex items-center justify-center w-screen flex-wrap bg-transparent ">
       <ToolbarGroup>
         <HeadingDropdownMenu levels={[1, 2, 3, 4]} portal={isMobile} />
         <ListDropdownMenu
@@ -109,10 +111,16 @@ export function SimpleEditor({
   content?: string;
   editor: Editor;
 }) {
+  const [mounted, setMounted] = useState(false);
+  const [value, setValue] = useLocalStorage(
+    key,
+    defaultSettings,
+    settingsSchema,
+  );
   const isMobile = useIsBreakpoint();
   const { height } = useWindowSize();
   const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">(
-    "main"
+    "main",
   );
   const toolbarRef = useRef<HTMLDivElement>(null);
 
@@ -126,9 +134,14 @@ export function SimpleEditor({
       setMobileView("main");
     }
   }, [isMobile, mobileView]);
-
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted) {
+    return <div>Loading</div>;
+  }
   return (
-    <div className="simple-editor-wrapper">
+    <div className="simple-editor-wrapper bg-transparent border-none">
       <EditorContext.Provider value={{ editor }}>
         <Toolbar
           ref={toolbarRef}
@@ -148,11 +161,24 @@ export function SimpleEditor({
           />
         </Toolbar>
 
-        <EditorContent
-          editor={editor}
-          role="presentation"
-          className="simple-editor-content"
-        />
+        <div
+          className={cn(
+            "mx-auto",
+            value.textSize === "sm" && "text-sm",
+            value.textSize === "md" && "text-base",
+            value.textSize === "lg" && "text-lg",
+            value.lineWidth === "narrow" && "max-w-2xl",
+            value.lineWidth === "normal" && "max-w-4xl",
+            value.lineWidth === "wide" && "max-w-6xl",
+          )}
+        >
+          <EditorContent
+            editor={editor}
+            role="presentation"
+            spellCheck={value.spellcheck}
+            className="simple-editor-content"
+          />
+        </div>
       </EditorContext.Provider>
     </div>
   );

@@ -14,13 +14,21 @@ const SignOutButton = () => {
     try {
       setLoading(true);
 
-      const data = await authClient.signOut();
+      const data = await authClient.signOut({
+        fetchOptions:{
+          onError:()=>{
+
+          },
+          onSuccess:()=>{
+            router.push("/")
+          }
+        }
+      });
       if (data?.error) {
         throw new Error(data.error.message);
       }
 
       toast.success("Signed out");
-      router.refresh();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to sign out"

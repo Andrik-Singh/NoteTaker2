@@ -21,7 +21,7 @@ const NavBar = async () => {
           href="/"
           className="text-sm font-medium tracking-tight text-foreground/90"
         >
-          notes
+          NoteCraft
         </Link>
         <div className="hidden md:flex flex-1 justify-center">
           <div className="w-full max-w-md">

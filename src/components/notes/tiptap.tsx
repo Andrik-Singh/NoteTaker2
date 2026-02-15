@@ -1,10 +1,9 @@
 "use client";
 import {
   useLiveblocksExtension,
-  FloatingToolbar,
 } from "@liveblocks/react-tiptap";
 import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
-import { Editor, useEditor } from "@tiptap/react";
+import {  useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 
 import { HorizontalRule } from "../tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
@@ -54,6 +53,7 @@ export default function TipTap({
   const [lastUpdatedAt, setLastUpdatedAt] = useState(
     getLastUpdatedTime(diffTime),
   );
+  
   const id = useParams().id as string;
   const router = useRouter();
   const liveblocks = useLiveblocksExtension();

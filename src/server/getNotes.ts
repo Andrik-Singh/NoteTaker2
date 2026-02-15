@@ -94,7 +94,6 @@ export const getSpecificNotes = async (id: string) => {
           eq(note_members.member_user_id, user.id)
         )
       );
-    console.log(noteMembersTable);
     if (noteMembersTable.length === 0) {
       return {
         success: false,

@@ -25,13 +25,6 @@ const page = async () => {
       <section>
         <ChooseSection />
       </section>
-      <section>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-6 flex items-center gap-2">
-          <span className="material-symbols-outlined"><History size={15}/></span>
-          Recent Templates
-        </h3>
-        <RecentTemplates id={authData?.user.id!} />
-      </section>
       <TemplateSection/>
     </div>
   );

@@ -1,20 +1,29 @@
-import { defaultSettings } from "@/lib/utils"
 import { useEffect, useState } from "react"
-
-export function useLocalStorage<T>(key:string) {
+import z from "zod"
+export const editorKey = "editorSettings"
+export function useLocalStorage<
+  S extends z.ZodTypeAny,
+>(key:string,defaultSettings:z.infer<S>,schema:S) {
+  type T =z.infer<S>
   const [value, setValue] = useState(()=>{
     if(typeof window==="undefined" || !window){
       return defaultSettings
     }
     try {
       const stored= JSON.parse(localStorage.getItem(key) || "")
-      return stored as T || defaultSettings  
+      const parsed = schema.safeParse(stored)
+      return parsed.success ? parsed.data : defaultSettings
     } catch (error) {
       return defaultSettings
     }
   })
   useEffect(()=>{
-    localStorage.setItem(key,JSON.stringify(value))
+    const parsedResult= schema.safeParse(value) 
+    if(parsedResult.success){
+      localStorage.setItem(key,JSON.stringify(value))
+    }else{
+      localStorage.setItem(key,JSON.stringify(defaultSettings))
+    }
   },[key,value])
   return [value,setValue] as const
 }

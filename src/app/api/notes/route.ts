@@ -107,7 +107,6 @@ export async function POST(req: NextRequest) {
     }
     const { user } = authData;
     const randomId = crypto.randomUUID();
-    console.log(data.content)
     const noteContent =
       data.content.content.length === 0
         ? boilerPlateCode
