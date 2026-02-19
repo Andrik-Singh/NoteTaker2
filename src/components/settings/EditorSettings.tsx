@@ -12,7 +12,6 @@ import { settingsSchema } from "@/zod/settings";
 
 const EditorSettings = () => {
   const [value,setValue] = useLocalStorage(editorKey,defaultSettings,settingsSchema)
-  console.log(value)
   return (
     <section className="mt-10 space-y-5">
       <h3 className="text-md font-semibold uppercase tracking-wider dark:opacity-40 opacity-100 ">

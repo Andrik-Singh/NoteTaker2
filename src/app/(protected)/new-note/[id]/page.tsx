@@ -15,6 +15,7 @@ import {
 import { getSpecificNotes } from "@/server/getNotes";
 import { ArrowLeft, CircleX, ClipboardSignature, FileText } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 
 const page = async ({
   params,
@@ -34,11 +35,13 @@ const page = async ({
               <CircleX className="text-red-500 dark:text-red-400" size={32} />
             </div>
             <CardTitle className="text-2xl text-red-600 dark:text-red-400">
-              Error 404
+              Something went wrong
             </CardTitle>
           </CardHeader>
           <CardContent className="text-center pb-6">
-            <CardDescription className="text-base">{res.error}</CardDescription>
+            <CardDescription className="text-base">
+              {res.error ?? "An unknown error occurred"}
+            </CardDescription>
           </CardContent>
         </Card>
       </div>
@@ -66,7 +69,7 @@ const page = async ({
             </Link>
           </Button>
         </div>
-        <ZenModeHeader data={res.data[0]}/>
+        <ZenModeHeader data={res.data[0]} />
         {res.data[0].shareable === false ? (
           <NonShareAbleTipTap
             category={res.data[0].note_category}
@@ -75,7 +78,18 @@ const page = async ({
           />
         ) : (
           <Room>
-            <TipTap updatedAt={res.data[0].updated_at} content={content} />
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center h-[70vh]">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600"></div>
+                  <span className="ml-4 text-lg text-gray-600 dark:text-gray-400">
+                    Connecting to collaborative room...
+                  </span>
+                </div>
+              }
+            >
+              <TipTap updatedAt={res.data[0].updated_at} content={content} />
+            </Suspense>
           </Room>
         )}
       </div>

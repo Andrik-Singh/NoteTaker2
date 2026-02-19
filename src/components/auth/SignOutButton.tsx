@@ -5,6 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
+import { error } from "console";
 
 const SignOutButton = () => {
   const [loading, setLoading] = useState(false);
@@ -16,8 +17,9 @@ const SignOutButton = () => {
 
       const data = await authClient.signOut({
         fetchOptions:{
-          onError:()=>{
-
+          onError:(ctx)=>{
+            console.error(ctx)
+            toast.error("Failed to sign out due to " + ctx.error.message);
           },
           onSuccess:()=>{
             router.push("/")

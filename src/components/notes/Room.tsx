@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import {
   LiveblocksProvider,
   RoomProvider,
@@ -15,7 +15,7 @@ export function Room({ children }: { children: ReactNode }) {
     <LiveblocksProvider authEndpoint={"/api/liveblock-auth"}>
       <RoomProvider id={`${id}`}>
         <ClientSideSuspense fallback={<div>Loading…</div>}>
-          {children}
+          <Suspense fallback={<div>Loading…</div>}>{children}</Suspense>
         </ClientSideSuspense>
       </RoomProvider>
     </LiveblocksProvider>

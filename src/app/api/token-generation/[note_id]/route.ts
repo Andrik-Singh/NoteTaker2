@@ -51,7 +51,6 @@ export async function POST(
     }
     const currentDate = new Date();
     const sevenDaysLater = Number(currentDate) + 1000 * 60 * 60 * 24;
-    console.log(new Date(sevenDaysLater));
     const data = await db
       .insert(tokens)
       .values({

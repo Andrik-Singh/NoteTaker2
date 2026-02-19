@@ -137,9 +137,14 @@ export function SimpleEditor({
   useEffect(() => {
     setMounted(true);
   }, []);
-  if (!mounted) {
-    return <div>Loading</div>;
-  }
+if (!mounted) {
+  return (
+    <div className="simple-editor-wrapper bg-transparent border-none">
+      <div className="h-12" /> 
+      <div className="mx-auto max-w-4xl min-h-[200px] animate-pulse bg-muted/20 rounded" />
+    </div>
+  );
+}
   return (
     <div className="simple-editor-wrapper bg-transparent border-none">
       <EditorContext.Provider value={{ editor }}>

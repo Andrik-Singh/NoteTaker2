@@ -3,7 +3,6 @@ import { db } from "@/db";
 import { note_table } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { Liveblocks } from "@liveblocks/node";
-import { error } from "console";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 const liveblocks = new Liveblocks({

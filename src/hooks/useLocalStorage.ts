@@ -22,6 +22,7 @@ export function useLocalStorage<
     if(parsedResult.success){
       localStorage.setItem(key,JSON.stringify(value))
     }else{
+      setValue(defaultSettings)
       localStorage.setItem(key,JSON.stringify(defaultSettings))
     }
   },[key,value])

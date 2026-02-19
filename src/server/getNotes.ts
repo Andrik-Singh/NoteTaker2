@@ -7,7 +7,6 @@ import {
   note_tags,
 } from "@/db/schema";
 import { auth } from "@/lib/auth";
-import { error } from "console";
 import { and, eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 export type Note = {

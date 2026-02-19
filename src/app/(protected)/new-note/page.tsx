@@ -1,10 +1,7 @@
-import BlankNote from "@/components/newNote/blankNote";
-import BuisnessTemplateSection from "@/components/newNote/BuisnessTemplateSection";
+
 import ChooseSection from "@/components/newNote/ChooseSection";
-import RecentTemplates from "@/components/newNote/RecentTemplates";
 import TemplateSection from "@/components/newNote/TemplateSection";
 import { auth } from "@/lib/auth";
-import { History } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 const page = async () => {

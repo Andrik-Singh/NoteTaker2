@@ -14,10 +14,9 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
 export const metadata: Metadata = {
-  title: "NoteCraft - Note-Taking App",
-  description: "Note Taking App",
+  title: "NoteCraft Note-Taking App",
+  description: "Note-Taking App",
 };
 
 export default function RootLayout({
@@ -26,12 +25,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-            <NavBar />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>          
             <main>
               {children}
             </main>

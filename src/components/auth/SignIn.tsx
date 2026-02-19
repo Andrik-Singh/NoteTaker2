@@ -37,46 +37,58 @@ const SignIn = () => {
   } = methods;
   const [githubLoading, setGithubLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const router=useRouter()
+  const router = useRouter();
   const signInSubmission = async (unsafeData: SignInType) => {
     try {
       const data = signInSchema.safeParse(unsafeData);
       if (!data.success) {
         throw new Error("Invalid input data");
       }
-      const { error }=await authClient.signIn.email({
-        email:data.data.email,
-        password:data.data.password
-      })
-      if(error){
-        throw new Error(error.message)
+      const { error } = await authClient.signIn.email(
+        {
+          email: data.data.email,
+          password: data.data.password,
+        },
+        {
+          onError: (ctx) => {
+            toast.error("Failed to sign in due to " + ctx.error.message);
+          },
+          onSuccess: async() => {
+            toast.success("Signed in successfully");
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            router.push("/home");
+          },
+        },
+      );
+      if (error) {
+        throw new Error(error.message);
       }
       toast.success("Signed in successfully");
-      router.push("/home")
+      router.push("/home");
     } catch (error) {
-      if(typeof error === "string"){
-        toast.error(error)
-      }else{
-        console.error(error)
+      if (typeof error === "string") {
+        toast.error(error);
+      } else {
+        console.error(error);
       }
     }
   };
   const handleSignInWithGoogle = async () => {
     try {
       setGoogleLoading(true);
-      const data=await authClient.signIn.social({
-        provider:"google"
-      })
-      if(data.error){
-        throw new Error(data.error.message)
+      const data = await authClient.signIn.social({
+        provider: "google",
+      });
+      if (data.error) {
+        throw new Error(data.error.message);
       }
-      toast.success("Signed in successfully")
-      router.push("/home")
+      toast.success("Signed in successfully");
+      router.push("/home");
     } catch (error) {
-      if(typeof error === "string"){
-        toast.error(error)
-      }else{
-        console.error(error)
+      if (typeof error === "string") {
+        toast.error(error);
+      } else {
+        console.error(error);
       }
       setGoogleLoading(false);
     } finally {
@@ -86,20 +98,20 @@ const SignIn = () => {
   const handleSignWithGithub = async () => {
     try {
       setGithubLoading(true);
-      const data =await authClient.signIn.social({
-        provider:"github"
-      })
-      if(data.error){
-        throw new Error(data.error.message)
+      const data = await authClient.signIn.social({
+        provider: "github",
+      });
+      if (data.error) {
+        throw new Error(data.error.message);
       }
-      toast.success("Signed in successfully")
-      router.push("/home")
+      toast.success("Signed in successfully");
+      router.push("/home");
     } catch (error) {
       setGithubLoading(false);
-      if(typeof error === "string"){
-        toast.error(error)
-      }else{
-        console.error(error)
+      if (typeof error === "string") {
+        toast.error(error);
+      } else {
+        console.error(error);
       }
     } finally {
       setGithubLoading(false);

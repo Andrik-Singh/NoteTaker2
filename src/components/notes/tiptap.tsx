@@ -122,10 +122,7 @@ export default function TipTap({
     if (!editor || !room || hasLoadedFromDB.current) return;
 
     const initContent = async () => {
-      if (status != "connected") {
-        console.log("Liveblocks is not ready");
-        return;
-      }
+      console.log("status:" + status)
       const htmlContent = editor.getHTML();
       const jsonContent = editor.getJSON();
       const hasLiveblocksContent = (() => {
@@ -210,7 +207,7 @@ export default function TipTap({
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = setTimeout(() => {
         handleSave();
-      }, 8000);
+      }, 10000);
     };
     editor.on("update", onupdate);
     return () => {

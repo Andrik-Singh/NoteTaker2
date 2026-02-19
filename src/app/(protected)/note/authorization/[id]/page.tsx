@@ -22,14 +22,13 @@ const page = async ({
 }) => {
   const { id } = await params;
   const { token, role } = await searchParams;
-  console.log(id, token, role);
   if (!token || !id || !role) notFound();
   const expiresAt = await authorizeToken(token, role, id);
   if (!expiresAt.success) {
     return (
-      <Card className="w-md mx-auto mt-10">
+      <Card className="max-w-md mx-auto mt-10">
         <CardHeader className="text-red-500 text-3xl text-center">
-          <CardTitle>Error 404</CardTitle>
+          <CardTitle>Token is expired</CardTitle>
         </CardHeader>
         <CardContent className="text-center flex flex-col items-center gap-5 ">
             <CardTitle className="">

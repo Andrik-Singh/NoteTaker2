@@ -38,7 +38,6 @@ const Page = async () => {
     getUserNotes(),
     getSharedNotes(),
   ]);
-  console.log(sharedWithMeData);
   if (
     data.error ||
     !data.data ||
