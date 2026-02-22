@@ -1,36 +1,116 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+📝 NoteTaker2
+Real-Time Collaborative Rich Text Platform
 
-## Getting Started
+A production-ready, full-stack collaborative note application built with modern React architecture, real-time CRDT syncing, and a type-safe backend.
 
-First, run the development server:
+This project demonstrates advanced frontend engineering, distributed state synchronization, secure authentication flows, and scalable database design.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+🚀 Live Demo
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Deployed on Vercel
+https://note-taker2-seven.vercel.app
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+🧠 What This Project Demonstrates
+✅ Real-Time Distributed Systems
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Implemented collaborative editing using:
 
-## Learn More
+Liveblocks
 
-To learn more about Next.js, take a look at the following resources:
+Yjs
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Tiptap
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Uses CRDT-based synchronization to ensure:
 
-## Deploy on Vercel
+Conflict-free multi-user editing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Eventual consistency
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deterministic state merging
+
+Live presence updates
+
+This is not simple WebSocket syncing — it uses CRDT architecture.
+
+✅ Modern Full-Stack Architecture
+
+Built with:
+
+Next.js 16 (App Router + Server Actions)
+
+React 19
+
+TypeScript
+
+Architecture includes:
+
+Server Components + Client Components separation
+
+Secure server-only actions
+
+Environment-based configuration
+
+Optimized bundle boundaries
+
+✅ Type-Safe Backend & Database Design
+
+PostgreSQL
+
+Drizzle ORM
+
+Migration-driven schema evolution
+
+Key strengths:
+
+End-to-end type safety
+
+Strict schema modeling
+
+Query-level inference
+
+Reduced runtime errors
+
+✅ Secure Authentication System
+
+Using:
+
+better-auth
+
+Email + OAuth-ready architecture
+
+Protected server actions
+
+Session-based authorization
+
+Environment-isolated secrets
+
+Handles:
+
+Authenticated room access
+
+Secure collaboration rooms
+
+Controlled resource access
+
+✅ Production-Grade UI System
+
+Tailwind CSS 4
+
+Radix UI primitives
+
+Accessible component patterns
+
+Dark mode support
+
+Keyboard shortcuts
+
+Command palette integration
+
+Emphasis on:
+
+Accessibility
+
+Clean component abstraction
+
+Scalable design system patterns
