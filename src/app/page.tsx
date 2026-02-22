@@ -71,7 +71,7 @@ export default async function Home() {
             <div className="flex items-center gap-4">
               <Link
                 className="hidden sm:block text-primary/80 hover:text-primary text-sm font-medium"
-                href={authData ? "/home" : "#"}
+                href={authData ? "/home" : "/sign-in"}
               >
                 <button className="flex items-center justify-center rounded-full h-10 px-6 bg-primary hover:bg-primary-hover text-white text-sm font-bold shadow-lg shadow-primary/10 transition-all transform hover:-translate-y-0.5">
                   {authData ? "Open App" : "Sign in"}
@@ -104,13 +104,15 @@ export default async function Home() {
               you're journaling solo or thinking deeply with friends.
             </p>
 
-            <button className="group flex items-center justify-center gap-3 rounded-full h-14 px-8 bg-primary hover:bg-primary-hover text-white text-base font-bold shadow-xl shadow-primary/20 transition-all transform hover:scale-105">
-              <Flower
-                className="group-hover:rotate-12 transition-transform"
-                size={20}
-              />
-              <span>Step inside</span>
-            </button>
+            <Link href={"/home"}>
+              <button className="group flex items-center justify-center gap-3 rounded-full h-14 px-8 bg-primary hover:bg-primary-hover text-white text-base font-bold shadow-xl shadow-primary/20 transition-all transform hover:scale-105">
+                <Flower
+                  className="group-hover:rotate-12 transition-transform"
+                  size={20}
+                />
+                <span>Step inside</span>
+              </button>
+            </Link>
           </div>
           <div className="mt-16 relative w-full max-w-5xl px-4">
             <div className="relative bg-white rounded-t-2xl shadow-2xl border border-white/60 p-2 md:p-4 pb-0 overflow-hidden opacity-90 hover:opacity-100 transition-all duration-700 ease-out">
@@ -456,12 +458,13 @@ export default async function Home() {
               Your sanctuary is ready.
             </h2>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button className="flex items-center justify-center h-12 px-8 rounded-full bg-primary hover:bg-primary-hover text-white font-bold text-base shadow-lg transition-all w-full sm:w-auto">
-                Begin for free
-              </button>
-              <button className="flex items-center justify-center h-12 px-8 rounded-full bg-white border border-primary/20 text-primary hover:bg-gray-50 font-medium text-base transition-all w-full sm:w-auto">
-                Watch demo
-              </button>
+              <Link
+              href={"/home"}
+              >
+                <button className="flex items-center justify-center h-12 px-8 rounded-full bg-primary hover:bg-primary-hover text-white font-bold text-base shadow-lg transition-all w-full sm:w-auto">
+                  Begin for free
+                </button>
+              </Link>
             </div>
             <p className="text-primary/50 text-sm">
               No credit cards, no timers, no pressure. Just peace.

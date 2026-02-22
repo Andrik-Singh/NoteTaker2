@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 export const metadata: Metadata = {
-  title: "NoteCraft Note-Taking App",
+  title: "FlowNotes Note-Taking App",
   description: "Note-Taking App",
 };
 
