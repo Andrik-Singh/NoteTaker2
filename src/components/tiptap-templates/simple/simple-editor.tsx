@@ -160,7 +160,7 @@ if (!mounted) {
 
         <div
           className={cn(
-            "xl:mx-20 md:mx-10 mx-3",
+            "mx-auto",
             value.textSize === "sm" && "text-sm",
             value.textSize === "md" && "text-base",
             value.textSize === "lg" && "text-lg",
