@@ -12,7 +12,6 @@ import {
 } from "@/components/tiptap-ui-primitive/toolbar";
 
 // --- Tiptap Node ---
-
 import "@/components/tiptap-node/blockquote-node/blockquote-node.scss";
 import "@/components/tiptap-node/code-block-node/code-block-node.scss";
 import "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss";
@@ -63,7 +62,7 @@ const MainToolbarContent = ({
   editor: Editor;
 }) => {
   return (
-    <section className="flex items-center justify-center w-screen flex-wrap bg-transparent ">
+    <section className="flex items-center justify-center w-screen flex-wrap bg-transparent">
       <ToolbarGroup>
         <HeadingDropdownMenu levels={[1, 2, 3, 4]} portal={isMobile} />
         <ListDropdownMenu
@@ -112,16 +111,10 @@ export function SimpleEditor({
   editor: Editor;
 }) {
   const [mounted, setMounted] = useState(false);
-  const [value, setValue] = useLocalStorage(
-    key,
-    defaultSettings,
-    settingsSchema,
-  );
+  const [value, setValue] = useLocalStorage(key, defaultSettings, settingsSchema);
   const isMobile = useIsBreakpoint();
   const { height } = useWindowSize();
-  const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">(
-    "main",
-  );
+  const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">("main");
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   const rect = useCursorVisibility({
@@ -134,17 +127,20 @@ export function SimpleEditor({
       setMobileView("main");
     }
   }, [isMobile, mobileView]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
-if (!mounted) {
-  return (
-    <div className="simple-editor-wrapper bg-transparent border-none">
-      <div className="h-12" /> 
-      <div className="mx-auto max-w-4xl min-h-[200px] animate-pulse bg-muted/20 rounded" />
-    </div>
-  );
-}
+
+  if (!mounted) {
+    return (
+      <div className="simple-editor-wrapper bg-transparent border-none">
+        <div className="h-12" />
+        <div className="mx-20 max-w-4xl min-h-[200px] animate-pulse bg-muted/20 rounded" />
+      </div>
+    );
+  }
+
   return (
     <div className="simple-editor-wrapper bg-transparent border-none">
       <EditorContext.Provider value={{ editor }}>
@@ -152,9 +148,7 @@ if (!mounted) {
           ref={toolbarRef}
           style={{
             ...(isMobile
-              ? {
-                  bottom: `calc(100% - ${height - rect.y}px)`,
-                }
+              ? { bottom: `calc(100% - ${height - rect.y}px)` }
               : {}),
           }}
         >
