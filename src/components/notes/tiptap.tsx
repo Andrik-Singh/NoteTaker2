@@ -1,9 +1,7 @@
 "use client";
-import {
-  useLiveblocksExtension,
-} from "@liveblocks/react-tiptap";
+import { useLiveblocksExtension } from "@liveblocks/react-tiptap";
 import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
-import {  useEditor } from "@tiptap/react";
+import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 
 import { HorizontalRule } from "../tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
@@ -53,7 +51,7 @@ export default function TipTap({
   const [lastUpdatedAt, setLastUpdatedAt] = useState(
     getLastUpdatedTime(diffTime),
   );
-  
+
   const id = useParams().id as string;
   const router = useRouter();
   const liveblocks = useLiveblocksExtension();
@@ -122,8 +120,6 @@ export default function TipTap({
     if (!editor || !room || hasLoadedFromDB.current) return;
 
     const initContent = async () => {
-      console.log("status:" + status)
-      const htmlContent = editor.getHTML();
       const jsonContent = editor.getJSON();
       const hasLiveblocksContent = (() => {
         if (!jsonContent.content || jsonContent.content.length === 0) {
@@ -182,7 +178,7 @@ export default function TipTap({
         if (res.status === 401) {
           router.push("/sign-in");
         } else {
-          router.refresh()
+          router.refresh();
         }
       } else {
         setLastUpdatedAt(getLastUpdatedTime(0));
