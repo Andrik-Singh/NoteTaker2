@@ -168,7 +168,7 @@ export function SimpleEditor({
 
         <div
           className={cn(
-            "xl:mx-20 md:nx-10 mx-3",
+            "xl:mx-20 md:mx-10 mx-3",
             value.textSize === "sm" && "text-sm",
             value.textSize === "md" && "text-base",
             value.textSize === "lg" && "text-lg",
